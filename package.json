@@ -2,15 +2,17 @@
   "name": "prep-plataforma",
   "version": "1.0.0",
   "private": true,
+  "workspaces": [
+    "Quizunda-main"
+  ],
   "scripts": {
-    "dev": "npm start --prefix Quizunda-main",
+    "build": "node -e \"console.log('Backend pronto para o Render')\"",
+    "build:frontend": "npm run build --prefix Quizunda-main",
     "start": "node Quizunda-main/src/backend/server.js",
     "start:frontend": "npm start --prefix Quizunda-main",
-    "server": "npm run server --prefix Quizunda-main",
-    "db:init": "npm run db:init --prefix Quizunda-main",
-    "setup:pg": "npm run setup:pg --prefix Quizunda-main",
-    "migrate:lms": "node Quizunda-main/scripts/setup_lms_schema.js",
-    "seed:lms": "node Quizunda-main/scripts/seed_lms_data.js",
-    "build": "npm run build --prefix Quizunda-main"
+    "server": "node Quizunda-main/src/backend/server.js",
+    "db:init": "node Quizunda-main/scripts/init_database.js",
+    "setup:pg": "node Quizunda-main/setup_postgres.js",
+    "dev": "npm start --prefix Quizunda-main"
   }
 }

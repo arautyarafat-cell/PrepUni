@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "buildCommand": "npm run build --prefix Quizunda-main",
+  "buildCommand": "npm run build:frontend",
   "outputDirectory": "Quizunda-main/build",
   "cleanUrls": true,
   "rewrites": [
@@ -21,4 +21,3 @@
     }
   ]
 }
-
