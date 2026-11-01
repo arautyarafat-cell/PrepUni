@@ -24,18 +24,10 @@ export default function MTcomplementarPage() {
         if (response.ok && Array.isArray(data)) {
           setMaterials(data);
         } else {
-          setMaterials([
-            { id: 1, title: "Resumo Esquemático: Direito Constitucional", description: "Esquemas práticos e mapas mentais sobre direitos fundamentais e organização do estado.", fileUrl: "#" },
-            { id: 2, title: "Guia de Redação para Concursos Policiais", description: "Estruturas prontas, temas cotados e critérios de correção das principais bancas.", fileUrl: "#" },
-            { id: 3, title: "Manual de Raciocínio Lógico e Quantitativo", description: "Fórmulas, atalhos de cálculo e 200 questões resolvidas passo a passo.", fileUrl: "#" }
-          ]);
+          setMaterials([]);
         }
       } catch (error) {
-        setMaterials([
-          { id: 1, title: "Resumo Esquemático: Direito Constitucional", description: "Esquemas práticos e mapas mentais sobre direitos fundamentais e organização do estado.", fileUrl: "#" },
-          { id: 2, title: "Guia de Redação para Concursos Policiais", description: "Estruturas prontas, temas cotados e critérios de correção das principais bancas.", fileUrl: "#" },
-          { id: 3, title: "Manual de Raciocínio Lógico e Quantitativo", description: "Fórmulas, atalhos de cálculo e 200 questões resolvidas passo a passo.", fileUrl: "#" }
-        ]);
+        setMaterials([]);
       }
     };
     fetchMaterials();

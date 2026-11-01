@@ -24,12 +24,7 @@ export default function SalasDeExame({ cursoId }) {
         const data = await response.json();
         setSalas(Array.isArray(data) ? data : []);
       } catch (error) {
-        // Mock default exams if offline
-        setSalas([
-          { id: 1, nome: "Simulado 01 - CBMPE (Português e Raciocínio Lógico)" },
-          { id: 2, nome: "Simulado 02 - PMPE (Direito Constitucional e Penal)" },
-          { id: 3, nome: "Simulado Geral - Guarda Civil Municipal" }
-        ]);
+        setSalas([]);
       } finally {
         setLoading(false);
       }

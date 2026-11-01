@@ -6,93 +6,6 @@ import AppFooter from "../components/AppFooter";
 import { API_BASE_URL, getUploadUrl } from "../config/apiConfig";
 import { useSettings } from "../context/SettingsContext";
 
-const FALLBACK_COURSES = [
-  {
-    id: 101,
-    title: "CBMPE: BOMBEIRO MILITAR DE PERNAMBUCO [PRAÇA] 2027",
-    category: "Policiais",
-    country: "Brasil",
-    duration: "Válido até a prova",
-    oldPrice: "719,90",
-    price: "431,94",
-    hours: "838h59m",
-    files: "887 arquivos",
-    discount: "40% OFF",
-    thumbnail: "https://estoupreparado.com.br/assets/img/cursos/1791354400.webp",
-    details: "Curso preparatório completo com videoaulas atualizadas, cronograma estruturado, simulados comentados e material em PDF focado na banca organizadora."
-  },
-  {
-    id: 102,
-    title: "PMPE: POLÍCIA MILITAR DE PERNAMBUCO [SOLDADO] 2026/2027",
-    category: "Policiais",
-    country: "Brasil",
-    duration: "Válido até a prova",
-    oldPrice: "680,00",
-    price: "399,90",
-    hours: "750h30m",
-    files: "640 arquivos",
-    discount: "45% OFF",
-    thumbnail: "https://estoupreparado.com.br/assets/img/banners/1790944330.webp",
-    details: "Preparação intensiva para o concurso da PMPE. Abrange Língua Portuguesa, Raciocínio Lógico, História e Geografia, Direito Constitucional e Legislação."
-  },
-  {
-    id: 103,
-    title: "GUARDA CIVIL MUNICIPAL DO RECIFE - PREPARAÇÃO TOTAL",
-    category: "Prefeituras",
-    country: "Brasil",
-    duration: "12 meses de acesso",
-    oldPrice: "550,00",
-    price: "329,00",
-    hours: "520h00m",
-    files: "410 arquivos",
-    discount: "40% OFF",
-    thumbnail: "https://estoupreparado.com.br/assets/img/noticias/thumbnail/1793463955.webp",
-    details: "Treinamento direcionado para o edital iminente da Guarda Municipal. Questões comentadas, simulados quinzenais e suporte pedagógico."
-  },
-  {
-    id: 104,
-    title: "PREFEITURA DE SÃO CAETANO-PE: AGENTE DE COMBATE ÀS ENDEMIAS",
-    category: "Saúde",
-    country: "Brasil",
-    duration: "Válido até a prova",
-    oldPrice: "480,00",
-    price: "288,00",
-    hours: "340h00m",
-    files: "290 arquivos",
-    discount: "40% OFF",
-    thumbnail: "https://estoupreparado.com.br/assets/img/noticias/thumbnail/1793286950.webp",
-    details: "Curso completo contendo a parte básica e específica para Agente de Combate às Endemias conforme edital do Instituto IGEDUC."
-  },
-  {
-    id: 105,
-    title: "SUPER COMBO CARREIRAS POLICIAIS DO NORDESTE",
-    category: "Combos",
-    country: "Brasil",
-    duration: "24 meses de acesso",
-    oldPrice: "1.199,00",
-    price: "699,00",
-    hours: "1200h00m",
-    files: "1400 arquivos",
-    discount: "50% OFF",
-    thumbnail: "https://estoupreparado.com.br/assets/img/banners/1783578907.webp",
-    details: "Acesso a todos os preparatórios policiais: PMPE, PCPE, PMAL, PMBA, PMCE e Guardas Municipais de capitais do Nordeste."
-  },
-  {
-    id: 106,
-    title: "CARGA PESADA: EXERCÍCIOS E SIMULADOS PMPE",
-    category: "Isolados",
-    country: "Brasil",
-    duration: "Válido até a prova",
-    oldPrice: "399,00",
-    price: "219,00",
-    hours: "280h00m",
-    files: "320 arquivos",
-    discount: "45% OFF",
-    thumbnail: "https://estoupreparado.com.br/assets/img/banners/1782978983.webp",
-    details: "Resolução intensiva de mais de 3.000 questões com gabarito comentado em vídeo pelos professores titulares."
-  }
-];
-
 export default function CoursesPage() {
   const { getWhatsAppLink } = useSettings();
   const [courses, setCourses] = useState([]);
@@ -150,7 +63,7 @@ export default function CoursesPage() {
                 discount: "",
                 thumbnail: item.thumbnail
                   ? getUploadUrl(item.thumbnail)
-                  : (FALLBACK_COURSES[idx % FALLBACK_COURSES.length]?.thumbnail || ""),
+                  : "/banners/banner1.jpg",
                 details: item.details || item.descrição || item.description || "Curso preparatório estruturado com foco em aprovação.",
                 payment_whatsapp: item.payment_whatsapp
               }));
@@ -163,8 +76,8 @@ export default function CoursesPage() {
           setCourses([]);
         }
       } catch (error) {
-        console.warn("Não foi possível carregar cursos da API, usando padrão offline.");
-        setCourses(FALLBACK_COURSES);
+        console.warn("Não foi possível carregar cursos da API.");
+        setCourses([]);
       } finally {
         setLoading(false);
       }
@@ -234,12 +147,11 @@ export default function CoursesPage() {
                   onChange={(e) => setCategoryFilter(e.target.value)}
                 >
                   <option value="">Todas as categorias</option>
-                  <option value="policiais">Policiais</option>
-                  <option value="prefeituras">Prefeitura</option>
-                  <option value="saúde">Saúde</option>
-                  <option value="militares">Militares</option>
-                  <option value="isolados">Isolados</option>
-                  <option value="combos">Super Combos</option>
+                  {Array.from(new Set(courses.map((c) => c.category).filter(Boolean))).map((cat) => (
+                    <option key={cat} value={cat}>
+                      {cat}
+                    </option>
+                  ))}
                 </select>
               </div>
             </div>
@@ -334,17 +246,24 @@ export default function CoursesPage() {
               })
             ) : (
               <Col xs={12} className="text-center py-5">
-                <h5 className="text-muted">Nenhum curso encontrado com os filtros selecionados.</h5>
-                <Button
-                  variant="outline-primary"
-                  className="mt-3"
-                  onClick={() => {
-                    setSearchQuery("");
-                    setCategoryFilter("");
-                  }}
-                >
-                  Limpar Filtros
-                </Button>
+                <i className="fa fa-book-open fa-3x mb-3 text-secondary"></i>
+                <h5 className="text-muted">
+                  {courses.length === 0
+                    ? "Nenhum curso disponível no momento."
+                    : "Nenhum curso encontrado com os filtros selecionados."}
+                </h5>
+                {courses.length > 0 && (
+                  <Button
+                    variant="outline-primary"
+                    className="mt-3"
+                    onClick={() => {
+                      setSearchQuery("");
+                      setCategoryFilter("");
+                    }}
+                  >
+                    Limpar Filtros
+                  </Button>
+                )}
               </Col>
             )}
           </Row>

@@ -8,100 +8,6 @@ import { API_BASE_URL, getUploadUrl } from "../config/apiConfig";
 import { useSettings } from "../context/SettingsContext";
 import "./HomePage.css";
 
-const DEFAULT_COURSES = [
-  {
-    id: 1,
-    title: "CBMPE: BOMBEIRO MILITAR DE PERNAMBUCO [PRAÇA] 2027",
-    category: "Policiais",
-    country: "Brasil",
-    duration: "Válido até a prova",
-    oldPrice: "719,90",
-    price: "431,94",
-    hours: "838h59m",
-    files: "887 arquivos",
-    discount: "40% OFF",
-    thumbnail: "https://estoupreparado.com.br/assets/img/cursos/1791354400.webp",
-    details: "Curso preparatório completo com videoaulas atualizadas, cronograma estruturado, simulados comentados e material em PDF focado na banca organizadora."
-  },
-  {
-    id: 2,
-    title: "PMPE: POLÍCIA MILITAR DE PERNAMBUCO [SOLDADO] 2026/2027",
-    category: "Policiais",
-    country: "Brasil",
-    duration: "Válido até a prova",
-    oldPrice: "680,00",
-    price: "399,90",
-    hours: "750h30m",
-    files: "640 arquivos",
-    discount: "45% OFF",
-    thumbnail: "https://estoupreparado.com.br/assets/img/banners/1790944330.webp",
-    details: "Preparação intensiva para o concurso da PMPE. Abrange Língua Portuguesa, Raciocínio Lógico, História e Geografia, Direito Constitucional e Legislação."
-  },
-  {
-    id: 3,
-    title: "GUARDA CIVIL MUNICIPAL DO RECIFE - PREPARAÇÃO TOTAL",
-    category: "Prefeituras",
-    country: "Brasil",
-    duration: "12 meses de acesso",
-    oldPrice: "550,00",
-    price: "329,00",
-    hours: "520h00m",
-    files: "410 arquivos",
-    discount: "40% OFF",
-    thumbnail: "https://estoupreparado.com.br/assets/img/noticias/thumbnail/1793463955.webp",
-    details: "Treinamento direcionado para o edital iminente da Guarda Municipal. Questões comentadas, simulados quinzenais e suporte pedagógico."
-  },
-  {
-    id: 4,
-    title: "PREFEITURA DE SÃO CAETANO-PE: AGENTE DE COMBATE ÀS ENDEMIAS",
-    category: "Saúde",
-    country: "Brasil",
-    duration: "Válido até a prova",
-    oldPrice: "480,00",
-    price: "288,00",
-    hours: "340h00m",
-    files: "290 arquivos",
-    discount: "40% OFF",
-    thumbnail: "https://estoupreparado.com.br/assets/img/noticias/thumbnail/1793286950.webp",
-    details: "Curso completo contendo a parte básica e específica para Agente de Combate às Endemias conforme edital do Instituto IGEDUC."
-  }
-];
-
-const DEFAULT_TEACHERS = [
-  {
-    id: 17,
-    name: "Prof. Manuel Domingos",
-    role: "Instrutor",
-    bio: "Professor especialista em Carreiras Universitárias e Militares.",
-    avatar: "https://ui-avatars.com/api/?name=Manuel+Domingos&background=0044fc&color=fff&size=160&bold=true",
-    totalCursos: 1
-  },
-  {
-    id: 1,
-    name: "Prof. Isaquel Silva",
-    role: "Instrutor",
-    bio: "Direito Constitucional & Legislação com foco em aprovação.",
-    avatar: "https://ui-avatars.com/api/?name=Isaquel+Silva&background=0044fc&color=fff&size=160&bold=true",
-    totalCursos: 1
-  },
-  {
-    id: 2,
-    name: "Prof. João Batista",
-    role: "Instrutor",
-    bio: "Língua Portuguesa & Redação para concursos e vestibulares.",
-    avatar: "https://ui-avatars.com/api/?name=Joao+Batista&background=0044fc&color=fff&size=160&bold=true",
-    totalCursos: 1
-  },
-  {
-    id: 3,
-    name: "Prof. Carlos Eduardo",
-    role: "Instrutor",
-    bio: "Raciocínio Lógico & Matemática com foco em resolução prática.",
-    avatar: "https://ui-avatars.com/api/?name=Carlos+Eduardo&background=0044fc&color=fff&size=160&bold=true",
-    totalCursos: 1
-  }
-];
-
 export default function HomePage() {
   const { settings, getWhatsAppLink } = useSettings();
   const [courses, setCourses] = useState([]);
@@ -115,7 +21,6 @@ export default function HomePage() {
   const [showModal, setShowModal] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState(null);
   const [enrolledCourseIds, setEnrolledCourseIds] = useState([]);
-  const [radioPlaying, setRadioPlaying] = useState(false);
 
   const navigate = useNavigate();
   const { user } = useContext(AuthContext);
@@ -165,17 +70,17 @@ export default function HomePage() {
             discount: "",
             thumbnail: item.thumbnail
               ? getUploadUrl(item.thumbnail)
-              : (DEFAULT_COURSES[idx % DEFAULT_COURSES.length]?.thumbnail || ""),
+              : "/banners/banner1.jpg",
             details: item.details || item.descrição || "Curso preparatório estruturado com foco em aprovação."
           }));
           setCourses(formatted);
-        } else if (Array.isArray(data)) {
+        } else {
           setCourses([]);
         }
       })
-      .catch(() => {
-        // Fallback apenas se o servidor estiver completamente offline
-        setCourses(DEFAULT_COURSES);
+      .catch((err) => {
+        console.warn("Servidor offline ou sem conexão:", err);
+        setCourses([]);
       })
       .finally(() => {
         setLoading(false);
@@ -198,12 +103,12 @@ export default function HomePage() {
           }));
           setTeachers(formatted);
         } else {
-          setTeachers(DEFAULT_TEACHERS);
+          setTeachers([]);
         }
       })
       .catch((err) => {
-        console.warn("Erro ao buscar professores, usando fallback:", err);
-        setTeachers(DEFAULT_TEACHERS);
+        console.warn("Servidor offline ou erro ao buscar professores:", err);
+        setTeachers([]);
       })
       .finally(() => {
         setLoadingTeachers(false);
@@ -219,6 +124,10 @@ export default function HomePage() {
     setSelectedCourse(course);
     setShowModal(true);
   };
+
+  const availableCategories = Array.from(
+    new Set(courses.map((c) => c.category).filter(Boolean))
+  );
 
   const filteredCourses = courses.filter((c) => {
     const matchesCategory =
@@ -471,23 +380,24 @@ export default function HomePage() {
           <div className="titulo-novo-1">CONHEÇA</div>
           <div className="titulo-novo-2">Nossos Cursos</div>
 
-          {/* Filtros de Categoria */}
-          <div className="d-flex justify-content-center flex-wrap gap-2 mb-4">
-            {["Todas", "Policiais", "Prefeituras", "Saúde", "Militares", "Combos"].map(
-              (cat) => (
+          {/* Filtros de Categoria (dinâmicos com base nos cursos cadastrados) */}
+          {availableCategories.length > 0 && (
+            <div className="d-flex justify-content-center flex-wrap gap-2 mb-4">
+              {["Todas", ...availableCategories].map((cat) => (
                 <Button
                   key={cat}
                   variant={selectedCategory === cat ? "primary" : "outline-secondary"}
                   size="sm"
-                  className={`px-3 py-2 fw-bold ${selectedCategory === cat ? "ep-btn-entrar" : "bg-white text-dark border"
-                    }`}
+                  className={`px-3 py-2 fw-bold ${
+                    selectedCategory === cat ? "ep-btn-entrar" : "bg-white text-dark border"
+                  }`}
                   onClick={() => setSelectedCategory(cat)}
                 >
                   {cat}
                 </Button>
-              )
-            )}
-          </div>
+              ))}
+            </div>
+          )}
 
           {/* Grid de Cards de Cursos com layout exato do Estou Preparado */}
           <Row className="g-4">
@@ -582,7 +492,12 @@ export default function HomePage() {
             ) : (
               <Col xs={12} className="text-center py-5 text-muted">
                 <i className="fa fa-book-open fa-3x mb-3 text-secondary"></i>
-                <h5>Nenhum curso disponível nesta categoria no momento.</h5>
+                <h5>Nenhum curso disponível no momento.</h5>
+                <p className="small text-muted">
+                  {courses.length === 0
+                    ? "Novos cursos preparatórios estarão disponíveis em breve."
+                    : "Nenhum curso encontrado nesta categoria."}
+                </p>
               </Col>
             )}
           </Row>
@@ -664,7 +579,7 @@ export default function HomePage() {
                   />
                   <div>
                     <h6 className="mb-0 fw-bold">Juliana Lima</h6>
-                    <small className="text-primary fw-semibold">Aprovada PMPE [1º Lugar]</small>
+                    <small className="text-primary fw-semibold">Aprovada em Medicina</small>
                   </div>
                 </div>
               </div>
@@ -690,7 +605,7 @@ export default function HomePage() {
                   />
                   <div>
                     <h6 className="mb-0 fw-bold">Carlos Eduardo Silva</h6>
-                    <small className="text-primary fw-semibold">Aprovado CBMPE [Praça]</small>
+                    <small className="text-primary fw-semibold">Aprovado em Engenharia Informática</small>
                   </div>
                 </div>
               </div>
@@ -716,7 +631,7 @@ export default function HomePage() {
                   />
                   <div>
                     <h6 className="mb-0 fw-bold">Matheus Vinícius</h6>
-                    <small className="text-primary fw-semibold">Aprovado Guarda Civil</small>
+                    <small className="text-primary fw-semibold">Aprovado em Direito</small>
                   </div>
                 </div>
               </div>
@@ -729,9 +644,9 @@ export default function HomePage() {
       <section id="galeria" className="my-5">
         <Container>
           <div className="ep-galeria-banner">
-            <h2>Concurseiro disciplinado, será aprovado!</h2>
+            <h2>Estudante focado conquista a sua aprovação!</h2>
             <p className="lead mb-4">
-              Junte-se aos milhares de concurseiros que conquistaram a estabilidade pública.
+              Junte-se aos milhares de estudantes que conquistaram o acesso ao ensino superior.
             </p>
             <a href="/CoursesPage" className="ep-galeria-btn">
               Conheça a Galeria de Aprovados <i className="fa fa-trophy ms-2"></i>
