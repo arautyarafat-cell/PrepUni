@@ -23,31 +23,23 @@ app.use(helmet({
   contentSecurityPolicy: false
 }));
 
-// 🌐 CORS com suporte dinâmico a múltiplos domínios e Vercel previews
-const rawCorsOrigin = process.env.CORS_ORIGIN || process.env.FRONTEND_URL || "*";
-const allowedOrigins = rawCorsOrigin.split(",").map(o => o.trim().replace(/\/$/, "")).filter(Boolean);
-
-app.use(cors({
-  origin: (origin, callback) => {
-    // Permitir requisições sem origem (Postman, mobile, curl, server-to-server)
-    if (!origin) return callback(null, true);
-    // Se permitir todos (*)
-    if (allowedOrigins.includes("*")) return callback(null, true);
-    // Se estiver na lista explícita
-    if (allowedOrigins.includes(origin)) return callback(null, true);
-    // Permitir subdomínios Vercel e desenvolvimento local
-    if (origin.endsWith(".vercel.app") || origin.includes("localhost") || origin.includes("127.0.0.1")) {
-      return callback(null, true);
-    }
-    return callback(null, true); // Fallback permissivo para evitar bloqueios inesperados de deploy
-  },
-  credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"]
-}));
-
-// Responder imediatamente preflight OPTIONS
-app.options("*", cors());
+// 🌐 CORS com suporte completo e dinâmico para Vercel e produção
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (origin) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+    res.setHeader("Access-Control-Allow-Credentials", "true");
+  } else {
+    res.setHeader("Access-Control-Allow-Origin", "*");
+  }
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, PATCH, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With, Accept");
+  
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(200);
+  }
+  next();
+});
 
 // 🩺 Health check para Render e monitoramento
 app.get("/", (req, res) => {

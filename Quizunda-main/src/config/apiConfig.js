@@ -4,6 +4,13 @@
 export const API_HOST = (process.env.REACT_APP_API_URL || "http://localhost:5000").replace(/\/api\/?$/, "");
 export const API_BASE_URL = `${API_HOST}/api`;
 
+if (typeof window !== "undefined") {
+  console.log("🔗 [PrepUni API] Conectado a:", API_BASE_URL);
+  if (API_HOST.includes("localhost") && window.location.hostname !== "localhost") {
+    console.warn("⚠️ [Atenção] O Frontend na Vercel está tentando se conectar a localhost:5000. Configure a variável de ambiente REACT_APP_API_URL na Vercel e faça um Redeploy!");
+  }
+}
+
 /**
  * Normaliza URLs de upload para garantir que apontem para o host correto em produção
  */
