@@ -1,0 +1,208 @@
+/* Estilos específicos para HomePage Estou Preparado */
+
+.ep-home-wrapper {
+  background-color: var(--ep-gray-bg);
+  min-height: 100vh;
+}
+
+/* Banner e Overlay do Carrossel Principal */
+.ep-banner-wrapper {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+}
+
+.ep-carousel-banner {
+  height: 520px;
+  object-fit: cover;
+  width: 100%;
+  display: block;
+}
+
+.ep-banner-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    90deg,
+    rgba(10, 24, 50, 0.52) 0%,
+    rgba(10, 24, 50, 0.25) 45%,
+    rgba(10, 24, 50, 0.05) 100%
+  );
+  pointer-events: none;
+}
+
+.ep-banner-caption {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  z-index: 5;
+}
+
+.ep-banner-content {
+  max-width: 680px;
+  color: #ffffff;
+  padding: 30px 0;
+}
+
+.ep-banner-badge {
+  display: none; /* Oculto em desktop conforme solicitado */
+  align-items: center;
+  background-color: rgba(0, 68, 252, 0.9);
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 6px 16px;
+  border-radius: 20px;
+  margin-bottom: 16px;
+  backdrop-filter: blur(4px);
+  box-shadow: 0 4px 15px rgba(0, 68, 252, 0.3);
+}
+
+.ep-banner-title {
+  font-size: 2.85rem;
+  font-weight: 800;
+  line-height: 1.2;
+  margin-bottom: 16px;
+  color: #ffffff;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+  letter-spacing: -0.5px;
+}
+
+.ep-banner-subtitle {
+  font-size: 1.25rem;
+  font-weight: 400;
+  line-height: 1.5;
+  margin-bottom: 28px;
+  color: rgba(255, 255, 255, 0.92);
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.4);
+}
+
+.ep-banner-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.ep-banner-btn-primary {
+  background-color: #0044fc !important;
+  border-color: #0044fc !important;
+  color: #ffffff !important;
+  font-weight: 700;
+  font-size: 15px;
+  padding: 12px 24px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 68, 252, 0.4);
+}
+
+.ep-banner-btn-primary:hover {
+  background-color: #0033cc !important;
+  border-color: #0033cc !important;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 68, 252, 0.6);
+}
+
+.ep-banner-btn-secondary {
+  font-weight: 700;
+  font-size: 15px;
+  padding: 12px 24px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.ep-banner-btn-secondary:hover {
+  transform: translateY(-2px);
+}
+
+/* Responsividade Mobile e Tablet */
+@media (max-width: 991px) {
+  .ep-carousel-banner {
+    height: 440px;
+  }
+  .ep-banner-title {
+    font-size: 2.2rem;
+  }
+  .ep-banner-subtitle {
+    font-size: 1.1rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .ep-carousel-banner {
+    height: 400px;
+  }
+  .ep-banner-overlay {
+    background: linear-gradient(
+      180deg,
+      rgba(10, 24, 50, 0.20) 0%,
+      rgba(10, 24, 50, 0.58) 100%
+    );
+  }
+  .ep-banner-caption {
+    align-items: center;
+    padding-bottom: 20px;
+  }
+  .ep-banner-content {
+    text-align: center;
+    padding: 10px 0;
+  }
+  .ep-banner-title {
+    font-size: 1.7rem;
+    margin-bottom: 10px;
+  }
+  .ep-banner-subtitle {
+    font-size: 0.95rem;
+    margin-bottom: 0;
+  }
+  .ep-banner-badge {
+    display: inline-flex;
+    font-size: 11px;
+    padding: 4px 12px;
+    margin-bottom: 10px;
+  }
+  .ep-banner-buttons {
+    display: none !important; /* Oculto em dispositivos móveis */
+  }
+  .ep-banner-btn-primary,
+  .ep-banner-btn-secondary {
+    font-size: 13px;
+    padding: 10px 18px;
+    width: 100%;
+    text-align: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .ep-carousel-banner {
+    height: 360px;
+  }
+  .ep-banner-title {
+    font-size: 1.4rem;
+  }
+  .ep-banner-subtitle {
+    font-size: 0.85rem;
+  }
+}
+
+.ep-main-carousel .carousel-indicators [data-bs-target] {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background-color: #ffffff;
+  opacity: 0.6;
+  margin: 0 4px;
+}
+
+.ep-main-carousel .carousel-indicators .active {
+  opacity: 1;
+  background-color: var(--ep-primary);
+}

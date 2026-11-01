@@ -1,0 +1,16 @@
+{
+  "name": "prep-plataforma",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "npm start --prefix Quizunda-main",
+    "start": "node Quizunda-main/src/backend/server.js",
+    "start:frontend": "npm start --prefix Quizunda-main",
+    "server": "npm run server --prefix Quizunda-main",
+    "db:init": "npm run db:init --prefix Quizunda-main",
+    "setup:pg": "npm run setup:pg --prefix Quizunda-main",
+    "migrate:lms": "node Quizunda-main/scripts/setup_lms_schema.js",
+    "seed:lms": "node Quizunda-main/scripts/seed_lms_data.js",
+    "build": "npm run build --prefix Quizunda-main"
+  }
+}

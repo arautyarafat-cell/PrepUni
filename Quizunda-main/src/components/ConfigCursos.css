@@ -1,0 +1,27 @@
+/* pages/ConfigCursos.css */
+
+.config-page {
+  min-height: 100vh;
+  padding-bottom: 3rem;
+  
+}
+
+.config-header {
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+}
+
+.back-button {
+  border-radius: 999px;
+  border-color: black;
+  padding: 0.45rem 1.1rem;
+  font-weight: 600;
+  transition: all 0.25s ease;
+
+}
+
+.back-button:hover {
+  transform: translateX(-4px);
+}

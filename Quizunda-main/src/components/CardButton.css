@@ -1,0 +1,70 @@
+.card-button {
+  cursor: pointer;
+  border-radius: 18px;
+  padding: 1.75rem;
+  color: #fff;
+
+  background: linear-gradient(
+    135deg,
+    var(--card-color-start),
+    var(--card-color-end)
+  );
+
+  box-shadow:
+    0 10px 25px rgba(0, 0, 0, 0.25),
+    inset 0 0 0 rgba(255, 255, 255, 0.1);
+
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease,
+    filter 0.25s ease;
+}
+
+.card-button:hover {
+  transform: translateY(-6px) scale(1.04);
+  box-shadow:
+    0 18px 40px rgba(0, 0, 0, 0.35),
+    0 0 22px rgba(255, 255, 255, 0.35);
+  filter: brightness(1.08);
+}
+
+.card-button:active {
+  transform: scale(0.97);
+}
+
+.card-icon {
+  font-size: 3.4rem;
+  margin-bottom: 0.5rem;
+  text-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+}
+
+.card-button .badge {
+  background: rgba(255, 255, 255, 0.9) !important;
+  color: #111 !important;
+  font-weight: 600;
+}
+
+.bg-success {
+  --card-color-start: #22c55e;
+  --card-color-end: #16a34a;
+}
+
+.bg-warning {
+  --card-color-start: #f59e0b;
+  --card-color-end: #d97706;
+}
+
+.bg-primary {
+  --card-color-start: #3b82f6;
+  --card-color-end: #1d4ed8;
+}
+
+.bg-info {
+  --card-color-start: #06b6d4;
+  --card-color-end: #0e7490;
+}
+
+.bg-danger {
+  --card-color-start: #ef4444;
+  --card-color-end: #b91c1c;
+}

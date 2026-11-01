@@ -1,0 +1,167 @@
+/* PortalPage.css */
+
+/* Layout geral */
+
+
+/* Navbar */
+.navbar {
+  background: #ffffff !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+
+
+.nav-link {
+  font-weight: 500;
+  color: #333 !important;
+  transition: color 0.2s ease;
+}
+
+.nav-link:hover {
+  color: #007bff !important;
+}
+
+/* Seções */
+section {
+  background: #fff;
+  border-radius: 10px;
+  padding: 25px;
+  margin-bottom: 35px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+}
+
+/* Títulos */
+section h4 {
+  font-weight: 700;
+  margin-bottom: 20px;
+  color: #444;
+  border-left: 5px solid #007bff;
+  padding-left: 10px;
+}
+
+/* Botões de cursos */
+button.btn-warning {
+  background: #ffc107;
+  border: none;
+  font-weight: 600;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+button.btn-warning:hover {
+  background: #e0a800;
+  transform: translateY(-2px);
+}
+
+/* Materiais de apoio */
+section ul {
+  list-style: none;
+  padding-left: 0;
+}
+
+section ul li {
+  margin-bottom: 10px;
+}
+
+section ul li a {
+  color: #007bff;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+section ul li a:hover {
+  text-decoration: underline;
+}
+
+/* Vídeo aulas */
+.card {
+  border: none;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+}
+
+.card img {
+  height: 160px;
+  object-fit: cover;
+}
+
+.card-body {
+  background: #fafafa;
+}
+
+.card-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #333;
+}
+
+/* Sala de exame */
+.btn-danger {
+  font-weight: 600;
+  padding: 14px 24px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #ff4d4d, #c82333);
+  border: none;
+  transition: all 0.2s ease;
+}
+
+.btn-danger:hover {
+  background: linear-gradient(135deg, #e63946, #a71d2a);
+  transform: scale(1.05);
+}
+
+/* Dashboard */
+.progress {
+  height: 28px;
+  border-radius: 8px;
+  background-color: #e9ecef;
+}
+
+.progress-bar {
+  font-weight: bold;
+  font-size: 0.95rem;
+  background: linear-gradient(135deg, #28a745, #218838);
+}
+
+/* Configurações */
+.btn-secondary {
+  font-weight: 600;
+  border-radius: 8px;
+  background: #6c757d;
+  border: none;
+  transition: all 0.2s ease;
+}
+
+.btn-secondary:hover {
+  background: #5a6268;
+  transform: translateY(-2px);
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  section {
+    padding: 18px;
+  }
+
+  .card img {
+    height: 120px;
+  }
+
+  .btn {
+    font-size: 0.9rem;
+  }
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+.hover-bg-light:hover {
+  background-color: #f1f5f9 !important;
+}
+
+.transition-all {
+  transition: all 0.2s ease-in-out;
+}
+

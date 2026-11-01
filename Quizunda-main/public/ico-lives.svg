@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120" fill="none">
+  <!-- Decorative confetti dots -->
+  <circle cx="20" cy="35" r="3" fill="#FF4757" />
+  <circle cx="102" cy="34" r="2.5" fill="#FFA502" />
+  <circle cx="26" cy="85" r="3" fill="#FFA502" />
+  <circle cx="98" cy="84" r="3" fill="#FF4757" />
+  <circle cx="60" cy="15" r="2.5" fill="#38B6FF" />
+  <circle cx="90" cy="18" r="2" fill="#2ED573" />
+  <circle cx="22" cy="60" r="2" fill="#38B6FF" />
+
+  <!-- Background circle (soft warm pastel) -->
+  <circle cx="60" cy="60" r="42" fill="#FFF0ED" />
+
+  <!-- Live screen / Video monitor -->
+  <rect x="36" y="36" width="48" height="38" rx="6" fill="#2F3542" />
+  <rect x="39" y="39" width="42" height="32" rx="4" fill="#1E272E" />
+
+  <!-- Stand of monitor -->
+  <path d="M57 74 L54 83 L66 83 L63 74 Z" fill="#747D8C" />
+  <rect x="50" y="82" width="20" height="3" rx="1.5" fill="#57606F" />
+
+  <!-- Play button in screen center -->
+  <circle cx="60" cy="55" r="10" fill="#0044FC" />
+  <path d="M57 50 L66 55 L57 60 Z" fill="#FFFFFF" />
+
+  <!-- LIVE badge on top-left of screen -->
+  <rect x="42" y="42" width="16" height="6" rx="2" fill="#FF4757" />
+  <circle cx="45" cy="45" r="1.2" fill="#FFFFFF" />
+  <text x="48" y="47" font-family="Arial, sans-serif" font-size="4" font-weight="bold" fill="#FFFFFF">LIVE</text>
+
+  <!-- Live broadcast wave ripples on top right -->
+  <path d="M73 43 C75 45, 75 47, 73 49" stroke="#FFA502" stroke-width="1.5" stroke-linecap="round" fill="none" />
+  <path d="M76 41 C79 44, 79 48, 76 51" stroke="#FF4757" stroke-width="1.5" stroke-linecap="round" fill="none" />
+</svg>
+

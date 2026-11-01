@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120" fill="none">
+  <!-- Decorative confetti dots -->
+  <circle cx="22" cy="36" r="3" fill="#FFA928" />
+  <circle cx="100" cy="30" r="2.5" fill="#FF6B81" />
+  <circle cx="26" cy="86" r="3" fill="#2ED573" />
+  <circle cx="96" cy="80" r="3" fill="#38B6FF" />
+  <circle cx="58" cy="14" r="2.5" fill="#FF4757" />
+  <circle cx="90" cy="16" r="2" fill="#FFA928" />
+  <circle cx="20" cy="62" r="2" fill="#70A1FF" />
+
+  <!-- Background circle (soft pastel green/teal) -->
+  <circle cx="60" cy="60" r="42" fill="#E8F8F0" />
+
+  <!-- Student body / shoulders -->
+  <path d="M40 86 C40 76, 50 73, 60 73 C70 73, 80 76, 80 86 Z" fill="#2ED573" />
+  <path d="M52 73 L60 81 L68 73 Z" fill="#FFFFFF" />
+
+  <!-- Student face / head -->
+  <circle cx="60" cy="58" r="14" fill="#F8D7B0" />
+  <!-- Hair -->
+  <path d="M46 54 C46 44, 74 44, 74 54 C74 48, 62 45, 46 54 Z" fill="#795548" />
+
+  <!-- Eyes & smile -->
+  <circle cx="55" cy="58" r="1.5" fill="#333333" />
+  <circle cx="65" cy="58" r="1.5" fill="#333333" />
+  <path d="M57 63 Q60 66 63 63" stroke="#333333" stroke-width="1.2" stroke-linecap="round" fill="none" />
+
+  <!-- Graduation cap on head -->
+  <path d="M38 43 L60 33 L82 43 L60 51 Z" fill="#1E272E" />
+  <rect x="52" y="48" width="16" height="5" rx="2" fill="#2F3542" />
+  <!-- Tassel -->
+  <path d="M72 44 L78 50 L78 57" stroke="#FFD32A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+  <circle cx="78" cy="58" r="2" fill="#FFD32A" />
+</svg>
+

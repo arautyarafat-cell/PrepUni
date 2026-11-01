@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 60" width="320" height="60" fill="none">
+  <g transform="translate(6, 6)">
+    <!-- Base e Sombra do Cap -->
+    <path d="M11 22.5 V32 C11 38 37 38 37 32 V22.5" fill="#002bb3" />
+    <!-- Topo do Cap / Losango -->
+    <path d="M24 5 L45 16 L24 27 L3 16 Z" fill="#0044fc" />
+    <!-- Linha e Pompom / Pingente Dourado -->
+    <path d="M42 17.5 V33" stroke="#fca311" stroke-width="2.5" stroke-linecap="round" />
+    <circle cx="42" cy="35" r="2.5" fill="#fca311" />
+    <circle cx="24" cy="16" r="2" fill="#ffffff" />
+  </g>
+  <!-- Tipografia -->
+  <text x="60" y="27" font-family="'Urbanist', 'Segoe UI', sans-serif" font-weight="900" font-size="19" fill="#0044fc" letter-spacing="0.5">PREPARATÓRIO</text>
+  <text x="60" y="46" font-family="'Urbanist', 'Segoe UI', sans-serif" font-weight="800" font-size="14.5" fill="#0f172a" letter-spacing="2.2">UNIVERSITÁRIO</text>
+</svg>
+

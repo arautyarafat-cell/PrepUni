@@ -1,0 +1,6 @@
+.ep-auth-page {
+  background-color: var(--ep-gray-bg);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}

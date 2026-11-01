@@ -1,0 +1,1 @@
+<polygon xmlns="http://www.w3.org/2000/svg" id="Fill" points="3.3733333 265 166.61436 5.2811388 329.87897 265 166.61436 524.81317" fill="#00ccff"/>
