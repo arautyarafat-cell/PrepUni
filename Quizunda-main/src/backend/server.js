@@ -2458,6 +2458,26 @@ app.get('/api/salas_e', async (req, res) => {
 
 
 
+// ⚠️ Tratamento para rotas inexistentes
+app.use((req, res) => {
+  if (req.accepts("html") && !req.path.startsWith("/api/")) {
+    const frontendUrl = process.env.FRONTEND_URL || (process.env.CORS_ORIGIN !== "*" ? process.env.CORS_ORIGIN : null) || "/";
+    return res.status(404).send(`
+      <!DOCTYPE html>
+      <html lang="pt">
+        <head><meta charset="utf-8"><title>PrepUni API</title></head>
+        <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; text-align: center; padding: 60px 20px; background: #f8f9fa;">
+          <h1 style="color: #0044fc;">🚀 PrepUni Backend API</h1>
+          <p style="color: #495057; font-size: 16px;">Você está acessando a URL do servidor Backend (API Express).</p>
+          <p style="color: #6c757d; font-size: 14px;">Para navegar pela plataforma visual (páginas como Cursos, Login, etc.), acesse o Frontend hospedado na Vercel:</p>
+          <p style="margin-top: 24px;"><a href="${frontendUrl}" style="display: inline-block; background: #0044fc; color: #fff; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: bold;">Acessar Frontend</a></p>
+        </body>
+      </html>
+    `);
+  }
+  res.status(404).json({ error: "Endpoint não encontrado na API" });
+});
+
 // 🔹 Rodar servidor dinamicamente com suporte a PORT de produção (Render / Railway / VPS)
 const PORT = parseInt(process.env.PORT, 10) || 5000;
 const HOST = process.env.HOST || "0.0.0.0";

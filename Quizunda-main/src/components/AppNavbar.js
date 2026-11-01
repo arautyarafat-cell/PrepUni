@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from "react";
 import { Container, Modal, Form, Button, Alert, Offcanvas, Dropdown } from "react-bootstrap";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import { useSettings } from "../context/SettingsContext";
 import { getRedirectPathForRole } from "../utils/roleRedirect";
@@ -148,7 +148,7 @@ export default function AppNavbar({ onSearch }) {
           <div className="row align-items-center">
             {/* Logo */}
             <div className="col-6 col-sm-5 col-lg-3">
-              <a href="/" className="d-inline-flex align-items-center text-decoration-none">
+              <Link to="/" className="d-inline-flex align-items-center text-decoration-none">
                 <img
                   src="/logo-preparatorio.svg"
                   alt="Preparatório Universitário"
@@ -158,7 +158,7 @@ export default function AppNavbar({ onSearch }) {
                     e.target.src = "/logo.svg";
                   }}
                 />
-              </a>
+              </Link>
             </div>
 
             {/* Campo de Busca (Desktop) */}
@@ -181,19 +181,19 @@ export default function AppNavbar({ onSearch }) {
             <div className="col-lg-3 d-none d-lg-block">
               <ul className="ep-mainmenu justify-content-center">
                 <li>
-                  <a href="/" className={location.pathname === "/" ? "active" : ""}>
+                  <Link to="/" className={location.pathname === "/" ? "active" : ""}>
                     Home
-                  </a>
+                  </Link>
                 </li>
                 <li>
-                  <a href="/CoursesPage" className={location.pathname === "/CoursesPage" ? "active" : ""}>
+                  <Link to="/CoursesPage" className={location.pathname === "/CoursesPage" ? "active" : ""}>
                     Cursos
-                  </a>
+                  </Link>
                 </li>
                 <li>
-                  <a href="/Sobre" className={location.pathname === "/Sobre" ? "active" : ""}>
+                  <Link to="/Sobre" className={location.pathname === "/Sobre" ? "active" : ""}>
                     Sobre
-                  </a>
+                  </Link>
                 </li>
               </ul>
             </div>

@@ -56,11 +56,19 @@ function App() {
             {/* Rotas públicas */}
             <Route path="/" element={<HomePage />} />
             <Route path="/CoursesPage" element={<CoursesPage />} />
+            <Route path="/cursos" element={<CoursesPage />} />
+            <Route path="/courses" element={<CoursesPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/RegisterPage" element={<RegisterPage />} />
+            <Route path="/cadastro" element={<RegisterPage />} />
+            <Route path="/registro" element={<RegisterPage />} />
             <Route path="/AdminLogin" element={<AdminLogin />} />
+            <Route path="/admin/login" element={<AdminLogin />} />
+            <Route path="/admin-login" element={<AdminLogin />} />
             <Route path="/Contato" element={<Contato />} />
+            <Route path="/contato" element={<Contato />} />
             <Route path="/Sobre" element={<Sobre />} />
+            <Route path="/sobre" element={<Sobre />} />
             <Route path="/RecuperarSenha" element={<RecuperarSenha />} />
             <Route path="/Mentoria" element={<Mentoria />} />
 
