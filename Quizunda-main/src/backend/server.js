@@ -50,6 +50,9 @@ app.use(cors({
 app.options("*", cors());
 
 // 🩺 Health check para Render e monitoramento
+app.get("/", (req, res) => {
+  res.status(200).json({ status: "ok", message: "PrepUni API rodando com sucesso 🚀", timestamp: new Date().toISOString() });
+});
 app.get("/health", (req, res) => {
   res.status(200).json({ status: "ok", uptime: process.uptime(), timestamp: new Date().toISOString() });
 });
