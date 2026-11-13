@@ -746,7 +746,7 @@ router.post("/api/admin/exams", async (req, res) => {
       [
         parseInt(courseId, 10),
         roomName.trim(),
-        ownerId ? parseInt(ownerId, 10) : null,
+        ownerId ? parseInt(ownerId, 10) : (req.user?.id || 1),
         description || "",
         parseInt(time_limit_minutes, 10) || 60,
         parseFloat(passing_score) || 50.0,
