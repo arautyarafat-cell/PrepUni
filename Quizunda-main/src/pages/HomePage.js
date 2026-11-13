@@ -25,13 +25,6 @@ export default function HomePage() {
   const navigate = useNavigate();
   const { user } = useContext(AuthContext);
 
-  // Redirecionamento automático de administradores para o painel administrativo
-  useEffect(() => {
-    if (user && (user.role || "").toLowerCase() === "admin") {
-      navigate("/AdminDashboard", { replace: true });
-    }
-  }, [user, navigate]);
-
   // Carregar matrículas do aluno caso esteja logado
   useEffect(() => {
     const token = localStorage.getItem("token") || (user && user.token);

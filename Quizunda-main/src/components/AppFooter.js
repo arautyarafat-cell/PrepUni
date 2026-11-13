@@ -4,7 +4,7 @@ import { useSettings } from "../context/SettingsContext";
 import { API_BASE_URL } from "../config/apiConfig";
 
 export default function AppFooter() {
-  const { settings, getWhatsAppLink } = useSettings();
+  const { settings, getWhatsAppLink, getLogoUrl } = useSettings();
   const whatsappUrl = getWhatsAppLink();
   const [courses, setCourses] = useState([]);
 
@@ -34,10 +34,10 @@ export default function AppFooter() {
           <Col xs={12} sm={6} lg={3}>
             <a href="/">
               <img
-                src="/logo-preparatorio.svg"
-                alt="Preparatório Universitário"
+                src={getLogoUrl ? getLogoUrl() : "/logo-preparatorio.svg"}
+                alt={settings?.platform_name || "Preparatório Universitário"}
                 className="ep-logo-img mb-2"
-                style={{ maxHeight: "40px" }}
+                style={{ maxHeight: "40px", objectFit: "contain" }}
                 onError={(e) => {
                   e.target.onerror = null;
                   e.target.src = "/logo.svg";

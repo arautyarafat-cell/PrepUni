@@ -21,6 +21,7 @@ import AppNavbar from "../components/AppNavbar";
 import AppFooter from "../components/AppFooter";
 import UserProfileModal from "../components/UserProfileModal";
 import { API_BASE_URL, getUploadUrl } from "../config/apiConfig";
+import { uploadImageToSupabase } from "../config/supabaseClient";
 
 const API_BASE = API_BASE_URL;
 
@@ -76,7 +77,8 @@ export default function AdminDashboard() {
     details: "",
     support_whatsapp: "",
     payment_whatsapp: "",
-    thumbnail: null
+    thumbnail: null,
+    thumbnailPreview: null
   });
 
   // 3. Módulos e Aulas State
@@ -217,6 +219,7 @@ export default function AdminDashboard() {
   // 11. Configurações State
   const [settings, setSettings] = useState({
     platform_name: "",
+    logo_url: "",
     contact_email: "",
     support_phone: "",
     support_whatsapp: "",
@@ -246,6 +249,8 @@ export default function AdminDashboard() {
   });
   const [loadingSettings, setLoadingSettings] = useState(false);
   const [savingSettings, setSavingSettings] = useState(false);
+  const [logoFile, setLogoFile] = useState(null);
+  const [logoPreview, setLogoPreview] = useState(null);
 
   // Inicialização e autenticação
   useEffect(() => {
@@ -353,14 +358,27 @@ export default function AdminDashboard() {
   const handleSaveCourse = async (e) => {
     e.preventDefault();
     try {
+      let finalThumbnail = courseForm.thumbnail;
+
+      // Se o usuário selecionou um arquivo File, faz o upload direto para o bucket do Supabase Storage
+      if (courseForm.thumbnail instanceof File) {
+        showFeedback("info", "Enviando imagem de capa para o Supabase Storage...");
+        finalThumbnail = await uploadImageToSupabase(courseForm.thumbnail, "courses");
+      }
+
       const formData = new FormData();
       Object.keys(courseForm).forEach((key) => {
-        if (key === "thumbnail" && courseForm[key] instanceof File) {
-          formData.append("thumbnail", courseForm[key]);
+        if (key === "thumbnail" || key === "thumbnailPreview") {
+          // Trata o thumbnail abaixo com a URL definitiva
         } else if (courseForm[key] !== null && courseForm[key] !== undefined) {
           formData.append(key, courseForm[key]);
         }
       });
+
+      if (finalThumbnail !== null && finalThumbnail !== undefined) {
+        formData.append("thumbnail", finalThumbnail);
+        formData.append("thumbnail_url", finalThumbnail);
+      }
 
       const url = editingCourse
         ? `${API_BASE}/admin/courses/${editingCourse.id}`
@@ -380,7 +398,8 @@ export default function AdminDashboard() {
       setEditingCourse(null);
       loadCourses();
     } catch (err) {
-      showFeedback("danger", err.message);
+      console.error("❌ [Erro ao salvar curso]:", err);
+      showFeedback("danger", err.message || "Erro ao salvar curso.");
     }
   };
 
@@ -655,12 +674,16 @@ export default function AdminDashboard() {
       formData.append("role", studentForm.role || "Estudante");
       formData.append("accountType", studentForm.accountType || "estudante");
 
+      let studentAvatarUrl = studentForm.avatar || "";
       if (studentForm.avatarFile) {
-        formData.append("avatar", studentForm.avatarFile);
+        showFeedback("info", "Enviando foto do aluno para o Supabase Storage...");
+        studentAvatarUrl = await uploadImageToSupabase(studentForm.avatarFile, "avatars");
       } else if (studentForm.removeAvatar) {
-        formData.append("avatar", "");
-      } else if (studentForm.avatar) {
-        formData.append("avatar", studentForm.avatar);
+        studentAvatarUrl = "";
+      }
+
+      if (studentAvatarUrl !== undefined) {
+        formData.append("avatar", studentAvatarUrl);
       }
 
       const res = await authFetch(url, {
@@ -933,12 +956,16 @@ export default function AdminDashboard() {
       formData.append("phone", (instructorForm.phone || "").trim());
       formData.append("bio", (instructorForm.bio || "").trim());
 
+      let instructorAvatarUrl = instructorForm.avatar || "";
       if (instructorForm.avatarFile) {
-        formData.append("avatar", instructorForm.avatarFile);
+        showFeedback("info", "Enviando foto do instrutor para o Supabase Storage...");
+        instructorAvatarUrl = await uploadImageToSupabase(instructorForm.avatarFile, "avatars");
       } else if (instructorForm.removeAvatar) {
-        formData.append("avatar", "");
-      } else if (instructorForm.avatar) {
-        formData.append("avatar", instructorForm.avatar);
+        instructorAvatarUrl = "";
+      }
+
+      if (instructorAvatarUrl !== undefined) {
+        formData.append("avatar", instructorAvatarUrl);
       }
 
       const res = await authFetch(url, {
@@ -980,6 +1007,11 @@ export default function AdminDashboard() {
       const data = await res.json();
       if (data) {
         setSettings(data);
+        if (data.logo_url) {
+          setLogoPreview(getUploadUrl(data.logo_url));
+        } else {
+          setLogoPreview("/logo-preparatorio.svg");
+        }
       }
     } catch (err) {
       console.error(err);
@@ -989,20 +1021,54 @@ export default function AdminDashboard() {
   };
 
   const handleSaveSettings = async (e) => {
-    e.preventDefault();
+    if (e && e.preventDefault) e.preventDefault();
     setSavingSettings(true);
     try {
+      let finalLogoUrl = settings.logo_url;
+
+      // Se o usuário selecionou um arquivo local de logotipo, fazemos upload
+      if (logoFile) {
+        showFeedback("info", "Enviando novo logotipo da plataforma...");
+        try {
+          finalLogoUrl = await uploadImageToSupabase(logoFile, "settings");
+        } catch (supabaseErr) {
+          console.warn("Upload no Supabase falhou, tentando rota central de upload:", supabaseErr);
+          const formData = new FormData();
+          formData.append("file", logoFile);
+          const uploadRes = await authFetch(`${API_BASE}/admin/upload`, {
+            method: "POST",
+            body: formData
+          });
+          if (!uploadRes.ok) throw new Error("Não foi possível enviar o arquivo de logotipo.");
+          const uploadData = await uploadRes.json();
+          if (uploadData && uploadData.url) {
+            finalLogoUrl = uploadData.url;
+          } else {
+            throw supabaseErr;
+          }
+        }
+      }
+
+      const payload = {
+        ...settings,
+        logo_url: finalLogoUrl || "/logo-preparatorio.svg"
+      };
+
       const res = await authFetch(`${API_BASE}/admin/settings`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(settings)
+        body: JSON.stringify(payload)
       });
       if (!res.ok) throw new Error("Erro ao atualizar configurações.");
 
-      localStorage.setItem("platform_settings", JSON.stringify(settings));
+      setSettings(payload);
+      setLogoFile(null);
+      setLogoPreview(getUploadUrl(payload.logo_url));
+
+      localStorage.setItem("platform_settings", JSON.stringify(payload));
       window.dispatchEvent(new Event("storage"));
 
-      showFeedback("success", "Configurações da plataforma atualizadas com sucesso!");
+      showFeedback("success", "Configurações da plataforma (nome e logotipo) atualizadas com sucesso!");
     } catch (err) {
       showFeedback("danger", err.message);
     } finally {
@@ -1080,7 +1146,7 @@ export default function AdminDashboard() {
               <div>
                 <div className="d-flex align-items-center gap-2 flex-wrap">
                   <span className="badge bg-warning text-dark fw-bold text-uppercase">Painel LMS Profissional</span>
-                  <span className="text-white-50 small">prepUni v2.0 • PostgreSQL</span>
+                  <span className="text-white-50 small">{settings.platform_name || "prepUni"} • Painel Administrativo</span>
                 </div>
                 <h3 className="fw-bold mb-0 mt-1 fs-5 fs-md-4 fs-lg-3" style={{ color: "#ffffff" }}>
                   Gestão da Plataforma de Cursos Online
@@ -1139,6 +1205,15 @@ export default function AdminDashboard() {
                   <i className="fa fa-user-edit me-1"></i> Meu Perfil
                 </Button>
 
+                <Button
+                  variant="outline-light"
+                  size="sm"
+                  className="text-nowrap"
+                  onClick={() => navigate("/")}
+                  title="Acessar a página inicial pública da plataforma"
+                >
+                  <i className="fa fa-home me-1"></i> Ver Home
+                </Button>
                 <Button variant="outline-light" size="sm" className="text-nowrap" onClick={() => navigate("/CoursesPage")}>
                   <i className="fa fa-external-link-alt me-1"></i> Ver Loja
                 </Button>
@@ -1467,7 +1542,8 @@ export default function AdminDashboard() {
                           details: "",
                           support_whatsapp: "",
                           payment_whatsapp: "",
-                          thumbnail: null
+                          thumbnail: null,
+                          thumbnailPreview: null
                         });
                         setShowCourseModal(true);
                       }}
@@ -1645,7 +1721,8 @@ export default function AdminDashboard() {
                                       details: c.details || "",
                                       support_whatsapp: c.support_whatsapp || "",
                                       payment_whatsapp: c.payment_whatsapp || "",
-                                      thumbnail: null
+                                      thumbnail: c.thumbnail || null,
+                                      thumbnailPreview: c.thumbnail ? getUploadUrl(c.thumbnail) : null
                                     });
                                     setShowCourseModal(true);
                                   }}
@@ -3338,25 +3415,137 @@ export default function AdminDashboard() {
                             className="bg-secondary text-white rounded-circle d-inline-flex align-items-center justify-content-center"
                             style={{ width: "32px", height: "32px", fontSize: "15px" }}
                           >
-                            <i className="fa fa-info-circle"></i>
+                            <i className="fa fa-paint-brush"></i>
                           </span>
                           <div>
-                            <h5 className="fw-bold mb-0 text-dark">Identidade e Regras da Plataforma</h5>
+                            <h5 className="fw-bold mb-0 text-dark">Identidade Visual e Nome da Plataforma</h5>
                             <small className="text-muted">
-                              Nome da instituição, e-mail administrativo, nota de certificação e cadastros.
+                              Personalize o nome oficial e o logotipo exibido em todas as páginas do sistema.
                             </small>
                           </div>
                         </div>
 
                         <Row className="g-3">
+                          {/* Card dedicado para Gestão de Logotipo */}
+                          <Col xs={12}>
+                            <Card className="border shadow-sm mb-2" style={{ backgroundColor: "#fbfcfe" }}>
+                              <Card.Body className="p-3">
+                                <Row className="align-items-center gy-3">
+                                  <Col xs={12} md={4} className="text-center text-md-start">
+                                    <Form.Label className="fw-bold small d-block mb-2 text-primary">
+                                      <i className="fa fa-image me-1"></i> Logotipo Atual / Pré-visualização
+                                    </Form.Label>
+                                    <div
+                                      className="d-inline-flex align-items-center justify-content-center p-3 rounded border bg-white shadow-sm"
+                                      style={{
+                                        minHeight: "85px",
+                                        minWidth: "200px",
+                                        maxWidth: "100%",
+                                        backgroundImage: "radial-gradient(#e2e8f0 1.2px, transparent 1.2px)",
+                                        backgroundSize: "12px 12px"
+                                      }}
+                                    >
+                                      {logoPreview ? (
+                                        <img
+                                          src={logoPreview}
+                                          alt="Pré-visualização do logotipo"
+                                          style={{ maxHeight: "55px", maxWidth: "200px", objectFit: "contain" }}
+                                          onError={(e) => {
+                                            e.target.onerror = null;
+                                            e.target.src = "/logo-preparatorio.svg";
+                                          }}
+                                        />
+                                      ) : (
+                                        <span className="text-muted small">Sem logotipo</span>
+                                      )}
+                                    </div>
+                                    <div className="mt-1">
+                                      <small className="text-muted" style={{ fontSize: "11px" }}>
+                                        {logoFile ? `Arquivo: ${logoFile.name}` : (settings.logo_url ? "Logotipo configurado" : "Logotipo padrão")}
+                                      </small>
+                                    </div>
+                                  </Col>
+
+                                  <Col xs={12} md={8}>
+                                    <div className="d-flex flex-column gap-2">
+                                      <Form.Label className="fw-bold small mb-1">
+                                        Carregar Novo Arquivo de Logotipo
+                                      </Form.Label>
+                                      <div className="d-flex flex-wrap gap-2 align-items-center">
+                                        <Form.Label className="btn btn-sm btn-primary mb-0 cursor-pointer shadow-sm">
+                                          <i className="fa fa-upload me-1"></i> Selecionar Imagem (PNG/SVG/JPG)
+                                          <Form.Control
+                                            type="file"
+                                            accept="image/*"
+                                            className="d-none"
+                                            onChange={(e) => {
+                                              const file = e.target.files && e.target.files[0];
+                                              if (file) {
+                                                setLogoFile(file);
+                                                setLogoPreview(URL.createObjectURL(file));
+                                              }
+                                            }}
+                                          />
+                                        </Form.Label>
+
+                                        <Button
+                                          variant="outline-secondary"
+                                          size="sm"
+                                          onClick={() => {
+                                            setLogoFile(null);
+                                            setLogoPreview("/logo-preparatorio.svg");
+                                            setSettings((prev) => ({ ...prev, logo_url: "/logo-preparatorio.svg" }));
+                                          }}
+                                          title="Voltar ao logotipo padrão original"
+                                        >
+                                          <i className="fa fa-undo me-1"></i> Restaurar Padrão
+                                        </Button>
+                                      </div>
+
+                                      <div className="mt-2">
+                                        <Form.Label className="fw-semibold text-muted" style={{ fontSize: "12px" }}>
+                                          Ou insira a URL direta do logotipo:
+                                        </Form.Label>
+                                        <InputGroup size="sm">
+                                          <InputGroup.Text><i className="fa fa-link"></i></InputGroup.Text>
+                                          <Form.Control
+                                            placeholder="Ex: https://meusite.com/logo.svg ou /uploads/logo.png"
+                                            value={settings.logo_url || ""}
+                                            onChange={(e) => {
+                                              const val = e.target.value;
+                                              setLogoFile(null);
+                                              setSettings((prev) => ({ ...prev, logo_url: val }));
+                                              setLogoPreview(val ? getUploadUrl(val) : "/logo-preparatorio.svg");
+                                            }}
+                                          />
+                                        </InputGroup>
+                                      </div>
+
+                                      <small className="text-muted mt-1" style={{ fontSize: "11.5px" }}>
+                                        <i className="fa fa-info-circle me-1"></i>
+                                        Recomenda-se imagem com fundo transparente (SVG ou PNG). O novo logotipo será aplicado no topo de todas as páginas, no rodapé e nas telas de login. Clique em <strong>"Salvar Alterações"</strong> no topo da página para salvar.
+                                      </small>
+                                    </div>
+                                  </Col>
+                                </Row>
+                              </Card.Body>
+                            </Card>
+                          </Col>
+
                           <Col md={6}>
                             <Form.Group>
-                              <Form.Label className="fw-bold small">Nome da Plataforma / Instituição</Form.Label>
+                              <Form.Label className="fw-bold small text-primary">
+                                <i className="fa fa-font me-1"></i> Nome da Plataforma / Instituição
+                              </Form.Label>
                               <Form.Control
                                 value={settings.platform_name || ""}
                                 onChange={(e) => setSettings({ ...settings, platform_name: e.target.value })}
+                                placeholder="Ex: prepUni - Plataforma LMS"
                                 required
                               />
+                              <Form.Text className="text-muted small">
+                                Nome principal utilizado no título da aba do navegador, cabeçalhos, rodapé e certificados.
+                              </Form.Text>
                             </Form.Group>
                           </Col>
                           <Col md={6}>
@@ -3628,12 +3817,30 @@ export default function AdminDashboard() {
               <Col md={12}>
                 <Form.Group>
                   <Form.Label className="fw-bold">Imagem de Capa (Thumbnail)</Form.Label>
+                  {courseForm.thumbnailPreview && (
+                    <div className="mb-2 text-center p-2 border rounded bg-light">
+                      <img
+                        src={courseForm.thumbnailPreview}
+                        alt="Prévia da Capa"
+                        style={{ maxHeight: "140px", maxWidth: "100%", borderRadius: "6px", objectFit: "cover" }}
+                      />
+                    </div>
+                  )}
                   <Form.Control
                     type="file"
                     accept="image/*"
-                    onChange={(e) => setCourseForm({ ...courseForm, thumbnail: e.target.files[0] })}
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        setCourseForm({
+                          ...courseForm,
+                          thumbnail: file,
+                          thumbnailPreview: URL.createObjectURL(file)
+                        });
+                      }
+                    }}
                   />
-                  <small className="text-muted">Selecione uma imagem representativa para a vitrine do curso.</small>
+                  <small className="text-muted">Selecione uma imagem representativa para a vitrine do curso (enviada ao bucket do Supabase Storage).</small>
                 </Form.Group>
               </Col>
 

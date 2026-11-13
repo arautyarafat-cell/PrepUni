@@ -4,6 +4,7 @@ import { Button, Card, Modal, Form } from "react-bootstrap";
 import { useNavigate } from "react-router-dom"; // botão voltar
 import { Container, Navbar, Nav, Carousel, NavDropdown } from 'react-bootstrap';
 import { API_BASE_URL, getUploadUrl } from "../config/apiConfig";
+import { uploadImageToSupabase } from "../config/supabaseClient";
 import UserProfileModal from "../components/UserProfileModal";
 
 const API_URL = `${API_BASE_URL}/courses`;
@@ -354,8 +355,13 @@ export default function MeusCursos() {
       formData.append("details", form.details);
 
 
-      if (form.thumbnail) {
-        formData.append("thumbnail", form.thumbnail);
+      let courseThumbnail = form.thumbnail;
+      if (form.thumbnail instanceof File) {
+        courseThumbnail = await uploadImageToSupabase(form.thumbnail, "courses");
+      }
+      if (courseThumbnail) {
+        formData.append("thumbnail", courseThumbnail);
+        formData.append("thumbnail_url", courseThumbnail);
       }
 
       const res = await fetch(url, {

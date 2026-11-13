@@ -3,8 +3,10 @@ import { Container, Form, Button, Alert } from "react-bootstrap";
 import AppNavbar from "../components/AppNavbar";
 import AppFooter from "../components/AppFooter";
 import { API_BASE_URL } from "../config/apiConfig";
+import { useSettings } from "../context/SettingsContext";
 
 export default function RecuperarSenha() {
+  const { settings, getLogoUrl } = useSettings();
   const [nome, setNome] = useState("");
   const [numeroouemail, setNumeroOuEmail] = useState("");
   const [sugerir_nova_senha, setSugerirNovaSenha] = useState("");
@@ -62,10 +64,10 @@ export default function RecuperarSenha() {
         <div className="ep-auth-card">
           <div className="text-center mb-4">
             <img
-              src="/logo-preparatorio.svg"
-              alt="Preparatório Universitário"
+              src={getLogoUrl ? getLogoUrl() : "/logo-preparatorio.svg"}
+              alt={settings?.platform_name || "Preparatório Universitário"}
               className="ep-logo-img mb-3"
-              style={{ maxHeight: "55px" }}
+              style={{ maxHeight: "55px", objectFit: "contain" }}
               onError={(e) => {
                 e.target.onerror = null;
                 e.target.src = "/logo.svg";

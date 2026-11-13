@@ -4,10 +4,12 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import AppNavbar from "../components/AppNavbar";
 import AppFooter from "../components/AppFooter";
 import { AuthContext } from "../context/AuthContext";
+import { useSettings } from "../context/SettingsContext";
 import { getRedirectPathForRole } from "../utils/roleRedirect";
 import "./LoginPage.css";
 
 export default function LoginPage() {
+  const { settings, getLogoUrl } = useSettings();
   const [emailOrPhone, setEmailOrPhone] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState(null);
@@ -82,10 +84,10 @@ export default function LoginPage() {
         <div className="ep-auth-card">
           <div className="text-center mb-4">
             <img
-              src="/logo-preparatorio.svg"
-              alt="Preparatório Universitário"
+              src={getLogoUrl ? getLogoUrl() : "/logo-preparatorio.svg"}
+              alt={settings?.platform_name || "Preparatório Universitário"}
               className="ep-logo-img mb-3"
-              style={{ maxHeight: "55px" }}
+              style={{ maxHeight: "55px", objectFit: "contain" }}
               onError={(e) => {
                 e.target.onerror = null;
                 e.target.src = "/logo.svg";

@@ -3,6 +3,7 @@ import { Navbar, Container, Button, ButtonGroup, Dropdown, Card, ProgressBar } f
 import { useNavigate, useParams } from "react-router-dom";
 import AppFooter from "../components/AppFooter";
 import { API_BASE_URL } from "../config/apiConfig";
+import { useSettings } from "../context/SettingsContext";
 
 const MOCK_QUESTIONS = [
   {
@@ -87,6 +88,7 @@ function normalizarPergunta(p) {
 }
 
 function Exame() {
+  const { settings, getLogoUrl } = useSettings();
   const [perguntas, setPerguntas] = useState([]);
   const [indexAtual, setIndexAtual] = useState(0);
   const [tempo, setTempo] = useState(3 * 60 * 60);
@@ -113,7 +115,7 @@ function Exame() {
             if (sala) setRoomTitle(sala.roomName || sala.nome || "");
           }
         })
-        .catch(() => {});
+        .catch(() => { });
     }
   }, [roomId]);
 
@@ -296,10 +298,10 @@ function Exame() {
         <Container>
           <Navbar.Brand href="/" className="d-flex align-items-center gap-2">
             <img
-              src="/logo-preparatorio.svg"
-              alt="Preparatório Universitário"
+              src={getLogoUrl ? getLogoUrl() : "/logo-preparatorio.svg"}
+              alt={settings?.platform_name || "Preparatório Universitário"}
               className="ep-logo-img"
-              style={{ maxHeight: "48px" }}
+              style={{ maxHeight: "48px", objectFit: "contain" }}
               onError={(e) => {
                 e.target.onerror = null;
                 e.target.src = "/logo.svg";

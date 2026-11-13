@@ -4,9 +4,11 @@ import { useNavigate } from "react-router-dom";
 import AppNavbar from "../components/AppNavbar";
 import AppFooter from "../components/AppFooter";
 import { API_BASE_URL } from "../config/apiConfig";
+import { useSettings } from "../context/SettingsContext";
 import "./RegisterPage.css";
 
 export default function RegisterPage() {
+  const { settings, getLogoUrl } = useSettings();
   const [name, setName] = useState("");
   const [emailOrPhone, setEmailOrPhone] = useState("");
   const [password, setPassword] = useState("");
@@ -78,10 +80,10 @@ export default function RegisterPage() {
         <div className="ep-auth-card" style={{ maxWidth: "520px" }}>
           <div className="text-center mb-4">
             <img
-              src="/logo-preparatorio.svg"
-              alt="Preparatório Universitário"
+              src={getLogoUrl ? getLogoUrl() : "/logo-preparatorio.svg"}
+              alt={settings?.platform_name || "Preparatório Universitário"}
               className="ep-logo-img mb-3"
-              style={{ maxHeight: "55px" }}
+              style={{ maxHeight: "55px", objectFit: "contain" }}
               onError={(e) => {
                 e.target.onerror = null;
                 e.target.src = "/logo.svg";

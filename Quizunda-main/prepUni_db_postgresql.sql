@@ -102,7 +102,7 @@ CREATE TABLE courses (
   instructor_id INT REFERENCES users(id) ON DELETE SET NULL,
   createdAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   duration VARCHAR(50) DEFAULT NULL,
-  thumbnail VARCHAR(255) DEFAULT NULL,
+  thumbnail TEXT DEFAULT NULL,
   country VARCHAR(100) NOT NULL DEFAULT '',
   course VARCHAR(500) DEFAULT '',
   account VARCHAR(100) DEFAULT NULL,
@@ -277,6 +277,7 @@ CREATE TABLE certificates (
 CREATE TABLE platform_settings (
   id SERIAL PRIMARY KEY,
   platform_name VARCHAR(255) NOT NULL DEFAULT 'prepUni Cursos Preparatórios',
+  logo_url TEXT DEFAULT '/logo-preparatorio.svg',
   contact_email VARCHAR(255) DEFAULT 'contato@prepuni.com',
   support_phone VARCHAR(50) DEFAULT '+244 941 908 927',
   support_whatsapp VARCHAR(50) DEFAULT '5581997570784',

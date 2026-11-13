@@ -16,12 +16,14 @@ async function runMigration() {
     `ALTER TABLE courses ADD COLUMN IF NOT EXISTS level VARCHAR(50) DEFAULT 'Todos os níveis';`,
     `ALTER TABLE courses ALTER COLUMN course DROP NOT NULL;`,
     `ALTER TABLE courses ALTER COLUMN course SET DEFAULT '';`,
+    `ALTER TABLE courses ALTER COLUMN thumbnail TYPE TEXT;`,
 
     // 3. Colunas adicionais para users
     `ALTER TABLE users ADD COLUMN IF NOT EXISTS status VARCHAR(20) NOT NULL DEFAULT 'ativo';`,
     `ALTER TABLE users ADD COLUMN IF NOT EXISTS phone VARCHAR(50) DEFAULT '';`,
     `ALTER TABLE users ADD COLUMN IF NOT EXISTS bio TEXT DEFAULT '';`,
     `ALTER TABLE users ADD COLUMN IF NOT EXISTS created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP;`,
+    `ALTER TABLE users ALTER COLUMN avatar TYPE TEXT;`,
 
     // 4. Colunas adicionais para compras (matriculas)
     `ALTER TABLE compras ADD COLUMN IF NOT EXISTS status VARCHAR(30) NOT NULL DEFAULT 'ativa';`,
@@ -121,6 +123,7 @@ async function runMigration() {
     `CREATE TABLE IF NOT EXISTS platform_settings (
       id SERIAL PRIMARY KEY,
       platform_name VARCHAR(255) NOT NULL DEFAULT 'prepUni Cursos Preparatórios',
+      logo_url TEXT DEFAULT '/logo-preparatorio.svg',
       contact_email VARCHAR(255) DEFAULT 'contato@prepuni.com',
       support_phone VARCHAR(50) DEFAULT '+244 941 908 927',
       support_whatsapp VARCHAR(50) DEFAULT '941908927',
@@ -134,8 +137,8 @@ async function runMigration() {
     );`,
 
     // Inserir platform_settings padrão se não existir
-    `INSERT INTO platform_settings (id, platform_name, contact_email, support_phone, support_whatsapp, payment_whatsapp, bna_iban, bna_express, currency_symbol, allow_registration, certificate_min_score)
-     VALUES (1, 'prepUni - Plataforma LMS', 'contato@prepuni.com', '+244 941 908 927', '941908927', '941908927', '0040.0000.3762.4337.1015.4', '941908927', 'Kz', TRUE, 70)
+    `INSERT INTO platform_settings (id, platform_name, logo_url, contact_email, support_phone, support_whatsapp, payment_whatsapp, bna_iban, bna_express, currency_symbol, allow_registration, certificate_min_score)
+     VALUES (1, 'prepUni - Plataforma LMS', '/logo-preparatorio.svg', 'contato@prepuni.com', '+244 941 908 927', '941908927', '941908927', '0040.0000.3762.4337.1015.4', '941908927', 'Kz', TRUE, 70)
      ON CONFLICT (id) DO NOTHING;`,
 
     // Inserir categorias padrão

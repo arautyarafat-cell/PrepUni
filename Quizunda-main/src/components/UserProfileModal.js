@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useContext } from "react";
 import { Modal, Button, Form, Alert, Spinner } from "react-bootstrap";
 import { API_BASE_URL, getUploadUrl } from "../config/apiConfig";
+import { uploadImageToSupabase } from "../config/supabaseClient";
 import { AuthContext } from "../context/AuthContext";
 
 export default function UserProfileModal({ show, onHide, user, onProfileUpdated }) {
@@ -86,10 +87,15 @@ export default function UserProfileModal({ show, onHide, user, onProfileUpdated 
         formData.append("password", password.trim());
       }
 
+      let userAvatarUrl = user?.avatar || "";
       if (avatarFile) {
-        formData.append("avatar", avatarFile);
+        userAvatarUrl = await uploadImageToSupabase(avatarFile, "avatars");
       } else if (removeAvatar) {
-        formData.append("avatar", "");
+        userAvatarUrl = "";
+      }
+
+      if (userAvatarUrl !== undefined) {
+        formData.append("avatar", userAvatarUrl);
       }
 
       const res = await fetch(`${API_BASE_URL}/users/profile`, {

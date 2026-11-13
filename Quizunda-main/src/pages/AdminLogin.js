@@ -4,10 +4,12 @@ import { Form, Button, Alert } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import { AdminAuthContext } from "../context/AuthContext1";
+import { useSettings } from "../context/SettingsContext";
 import AppNavbar from "../components/AppNavbar";
 import AppFooter from "../components/AppFooter";
 
 export default function AdminLogin() {
+  const { settings, getLogoUrl } = useSettings();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -53,10 +55,10 @@ export default function AdminLogin() {
         <div className="ep-auth-card" style={{ maxWidth: "420px" }}>
           <div className="text-center mb-4">
             <img
-              src="/logo-preparatorio.svg"
-              alt="Preparatório Universitário"
+              src={getLogoUrl ? getLogoUrl() : "/logo-preparatorio.svg"}
+              alt={settings?.platform_name || "Preparatório Universitário"}
               className="ep-logo-img mb-3"
-              style={{ maxHeight: "55px" }}
+              style={{ maxHeight: "55px", objectFit: "contain" }}
               onError={(e) => {
                 e.target.onerror = null;
                 e.target.src = "/logo.svg";

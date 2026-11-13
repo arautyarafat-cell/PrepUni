@@ -6,6 +6,7 @@ const path = require("path");
 const fs = require("fs");
 const crypto = require("crypto");
 const db = require("./db");
+const { uploadBackendFileToSupabase } = require("./supabaseAdmin");
 
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || "segredo_super_seguranca";
@@ -292,9 +293,9 @@ router.post("/api/admin/courses", upload.single("thumbnail"), async (req, res) =
       return res.status(400).json({ error: "O título do curso é obrigatório." });
     }
 
-    let thumbnail = thumbnail_url || null;
+    let thumbnail = req.body.thumbnail || thumbnail_url || null;
     if (req.file) {
-      thumbnail = `/uploads/${req.file.filename}`;
+      thumbnail = await uploadBackendFileToSupabase(req.file, "courses");
     }
 
     const [result] = await db.query(
@@ -379,9 +380,9 @@ router.put("/api/admin/courses/:id", upload.single("thumbnail"), async (req, res
       thumbnail_url
     } = req.body;
 
-    let thumbnail = thumbnail_url;
+    let thumbnail = req.body.thumbnail !== undefined ? req.body.thumbnail : thumbnail_url;
     if (req.file) {
-      thumbnail = `/uploads/${req.file.filename}`;
+      thumbnail = await uploadBackendFileToSupabase(req.file, "courses");
     }
 
     let updateQuery = `
@@ -1003,7 +1004,10 @@ router.get("/api/admin/students", async (req, res) => {
 router.post("/api/admin/students", upload.single("avatar"), async (req, res) => {
   try {
     const { name, emailOrPhone, password, phone, bio, status, role, accountType } = req.body;
-    const avatar = req.file ? `/uploads/${req.file.filename}` : (req.body.avatar || null);
+    let avatar = req.body.avatar || null;
+    if (req.file) {
+      avatar = await uploadBackendFileToSupabase(req.file, "avatars");
+    }
 
     if (!name || !emailOrPhone || !password) {
       return res.status(400).json({ error: "Nome, e-mail/telefone e senha são obrigatórios." });
@@ -1036,7 +1040,10 @@ router.put("/api/admin/students/:id", upload.single("avatar"), async (req, res) 
   try {
     const { id } = req.params;
     const { name, emailOrPhone, password, phone, bio, status, role, accountType } = req.body;
-    const avatar = req.file ? `/uploads/${req.file.filename}` : req.body.avatar;
+    let avatar = req.body.avatar;
+    if (req.file) {
+      avatar = await uploadBackendFileToSupabase(req.file, "avatars");
+    }
 
     let updateQuery = `
       UPDATE users SET 
@@ -1588,7 +1595,10 @@ router.get("/api/admin/instructors", async (req, res) => {
 router.post("/api/admin/instructors", upload.single("avatar"), async (req, res) => {
   try {
     const { name, emailOrPhone, password, phone, bio } = req.body;
-    const avatar = req.file ? `/uploads/${req.file.filename}` : (req.body.avatar || null);
+    let avatar = req.body.avatar || null;
+    if (req.file) {
+      avatar = await uploadBackendFileToSupabase(req.file, "avatars");
+    }
 
     if (!name || !emailOrPhone || !password) {
       return res.status(400).json({ error: "Nome, e-mail/telefone e senha são obrigatórios." });
@@ -1612,7 +1622,10 @@ router.put("/api/admin/instructors/:id", upload.single("avatar"), async (req, re
   try {
     const { id } = req.params;
     const { name, emailOrPhone, password, phone, bio, status } = req.body;
-    const avatar = req.file ? `/uploads/${req.file.filename}` : req.body.avatar;
+    let avatar = req.body.avatar;
+    if (req.file) {
+      avatar = await uploadBackendFileToSupabase(req.file, "avatars");
+    }
 
     if (!name || !emailOrPhone) {
       return res.status(400).json({ error: "Nome e e-mail/telefone são obrigatórios." });
@@ -1697,6 +1710,7 @@ router.post("/api/admin/upload", upload.single("file"), (req, res) => {
 
 const DEFAULT_SETTINGS = {
   platform_name: "prepUni - Plataforma LMS",
+  logo_url: "/logo-preparatorio.svg",
   contact_email: "contato@prepuni.com",
   support_phone: "+244 941 908 927",
   support_whatsapp: "5581997570784",
@@ -1729,6 +1743,7 @@ const DEFAULT_SETTINGS = {
 async function ensurePlatformSettingsColumns() {
   try {
     const columns = [
+      "ALTER TABLE platform_settings ADD COLUMN IF NOT EXISTS logo_url TEXT DEFAULT '/logo-preparatorio.svg'",
       "ALTER TABLE platform_settings ADD COLUMN IF NOT EXISTS whatsapp_display VARCHAR(100) DEFAULT '(81) 99757-0784'",
       "ALTER TABLE platform_settings ADD COLUMN IF NOT EXISTS whatsapp_message TEXT DEFAULT 'Olá, preciso de ajuda!'",
       "ALTER TABLE platform_settings ADD COLUMN IF NOT EXISTS whatsapp_description TEXT DEFAULT 'Atendimento rápido e suporte a dúvidas sobre cursos e matrículas.'",
@@ -1787,6 +1802,7 @@ router.put("/api/admin/settings", async (req, res) => {
   try {
     const {
       platform_name,
+      logo_url,
       contact_email,
       support_phone,
       support_whatsapp,
@@ -1817,7 +1833,7 @@ router.put("/api/admin/settings", async (req, res) => {
 
     await db.query(
       `INSERT INTO platform_settings (
-         id, platform_name, contact_email, support_phone, support_whatsapp, payment_whatsapp,
+         id, platform_name, logo_url, contact_email, support_phone, support_whatsapp, payment_whatsapp,
          bna_iban, bna_express, currency_symbol, allow_registration, certificate_min_score,
          whatsapp_display, whatsapp_message, whatsapp_description,
          instagram_url, instagram_handle, instagram_description,
@@ -1825,9 +1841,10 @@ router.put("/api/admin/settings", async (req, res) => {
          location_title, location_address, location_description, location_link, location_button_text,
          facebook_url, banner_title, banner_subtitle, updated_at
        )
-       VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+       VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
        ON CONFLICT (id) DO UPDATE SET
          platform_name = EXCLUDED.platform_name,
+         logo_url = EXCLUDED.logo_url,
          contact_email = EXCLUDED.contact_email,
          support_phone = EXCLUDED.support_phone,
          support_whatsapp = EXCLUDED.support_whatsapp,
@@ -1857,6 +1874,7 @@ router.put("/api/admin/settings", async (req, res) => {
          updated_at = CURRENT_TIMESTAMP`,
       [
         platform_name || "prepUni - Plataforma LMS",
+        logo_url || "/logo-preparatorio.svg",
         contact_email || "",
         support_phone || "",
         support_whatsapp || "",

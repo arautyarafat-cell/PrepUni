@@ -3,6 +3,7 @@ const cors = require("cors");
 const helmet = require("helmet");
 const rateLimit = require("express-rate-limit");
 const db = require('./db');
+const { uploadBackendFileToSupabase } = require("./supabaseAdmin");
 const jwt = require("jsonwebtoken");
 const multer = require("multer");
 const path = require("path");
@@ -1749,7 +1750,10 @@ app.put("/api/users/profile", auth, upload.single("avatar"), async (req, res) =>
   try {
     const userId = req.user.id;
     const { name, phone, bio, emailOrPhone, password } = req.body;
-    const avatar = req.file ? `/uploads/${req.file.filename}` : req.body.avatar;
+    let avatar = req.body.avatar;
+    if (req.file) {
+      avatar = await uploadBackendFileToSupabase(req.file, "avatars");
+    }
 
     const [existing] = await db.query("SELECT * FROM users WHERE id = ?", [userId]);
     if (!existing || existing.length === 0) {
@@ -1817,7 +1821,10 @@ app.put("/api/users/:id", auth, upload.single("avatar"), async (req, res) => {
     }
 
     const { name, password, accountType, emailOrPhone, phone, bio } = req.body;
-    const avatar = req.file ? `/uploads/${req.file.filename}` : req.body.avatar;
+    let avatar = req.body.avatar;
+    if (req.file) {
+      avatar = await uploadBackendFileToSupabase(req.file, "avatars");
+    }
 
     const [existing] = await db.query("SELECT * FROM users WHERE id = ?", [id]);
     if (!existing || existing.length === 0) {

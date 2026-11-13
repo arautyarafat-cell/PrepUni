@@ -9,7 +9,7 @@ import UserProfileModal from "./UserProfileModal";
 
 export default function AppNavbar({ onSearch }) {
   const { user: contextUser, login: contextLogin, logout: contextLogout } = useContext(AuthContext) || {};
-  const { getWhatsAppLink } = useSettings();
+  const { getWhatsAppLink, settings, getLogoUrl } = useSettings();
   const [user, setUser] = useState(null);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
@@ -150,9 +150,10 @@ export default function AppNavbar({ onSearch }) {
             <div className="col-6 col-sm-5 col-lg-3">
               <Link to="/" className="d-inline-flex align-items-center text-decoration-none">
                 <img
-                  src="/logo-preparatorio.svg"
-                  alt="Preparatório Universitário"
+                  src={getLogoUrl ? getLogoUrl() : "/logo-preparatorio.svg"}
+                  alt={settings?.platform_name || "Preparatório Universitário"}
                   className="ep-logo-img"
+                  style={{ maxHeight: "48px", objectFit: "contain" }}
                   onError={(e) => {
                     e.target.onerror = null;
                     e.target.src = "/logo.svg";
@@ -284,6 +285,10 @@ export default function AppNavbar({ onSearch }) {
                             </>
                           )}
                           <Dropdown.Divider />
+                          <Dropdown.Item onClick={() => navigate("/")} className="py-2 text-secondary">
+                            <i className="fa fa-home me-2 text-primary" style={{ width: "16px" }}></i>
+                            <span>Página Inicial (Home)</span>
+                          </Dropdown.Item>
                           <Dropdown.Item onClick={() => navigate("/CoursesPage")} className="py-2 text-secondary">
                             <i className="fa fa-external-link-alt me-2" style={{ width: "16px" }}></i>
                             <span>Ver Loja / Catálogo</span>
@@ -358,9 +363,9 @@ export default function AppNavbar({ onSearch }) {
         <Offcanvas.Header closeButton className="border-bottom py-3">
           <Offcanvas.Title className="d-flex align-items-center">
             <img
-              src="/logo-preparatorio.svg"
-              alt="Preparatório Universitário"
-              style={{ maxHeight: "38px" }}
+              src={getLogoUrl ? getLogoUrl() : "/logo-preparatorio.svg"}
+              alt={settings?.platform_name || "Preparatório Universitário"}
+              style={{ maxHeight: "38px", objectFit: "contain" }}
               onError={(e) => {
                 e.target.onerror = null;
                 e.target.src = "/logo.svg";

@@ -3,6 +3,7 @@ import React, { useContext } from "react";
 import { Navigate } from "react-router-dom";
 import { Spinner, Container } from "react-bootstrap";
 import { AuthContext } from "../context/AuthContext";
+import { AdminAuthContext } from "../context/AuthContext1";
 
 /**
  * Gateway inteligente para a rota `/admin`.
@@ -12,7 +13,10 @@ import { AuthContext } from "../context/AuthContext";
  * - Se aluno / não-admin -> bloqueia acesso administrativo e redireciona para o portal LMS do aluno.
  */
 export default function AdminGateway() {
-  const { user, loading } = useContext(AuthContext);
+  const { user, loading: userLoading } = useContext(AuthContext);
+  const { admin, loading: adminLoading } = useContext(AdminAuthContext);
+
+  const loading = userLoading || adminLoading;
 
   if (loading) {
     return (
@@ -23,12 +27,14 @@ export default function AdminGateway() {
     );
   }
 
+  const currentUser = user || admin;
+
   // Se não autenticado, encaminha para login
-  if (!user) {
+  if (!currentUser) {
     return <Navigate to="/login?redirect=/AdminDashboard" replace />;
   }
 
-  const role = (user.role || user.accountType || "").toLowerCase();
+  const role = (currentUser.role || currentUser.accountType || "").toLowerCase();
 
   // Se administrador ou instrutor, encaminha para o painel administrativo/dashboard
   if (["admin", "instrutor", "instructor", "professor"].includes(role)) {

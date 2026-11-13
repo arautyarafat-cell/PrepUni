@@ -1,8 +1,9 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
-import { API_BASE_URL } from "../config/apiConfig";
+import { API_BASE_URL, getUploadUrl } from "../config/apiConfig";
 
 export const DEFAULT_SETTINGS = {
   platform_name: "prepUni - Plataforma LMS",
+  logo_url: "/logo-preparatorio.svg",
   contact_email: "contato@prepuni.com",
   support_phone: "+244 941 908 927",
   support_whatsapp: "5581997570784",
@@ -37,7 +38,8 @@ const SettingsContext = createContext({
   refreshSettings: async () => {},
   updateLocalSettings: () => {},
   getWhatsAppLink: () => "",
-  getWhatsAppDisplay: () => ""
+  getWhatsAppDisplay: () => "",
+  getLogoUrl: () => "/logo-preparatorio.svg"
 });
 
 export const formatWhatsAppDigits = (rawPhone) => {
@@ -88,6 +90,33 @@ export const SettingsProvider = ({ children }) => {
     refreshSettings();
   }, [refreshSettings]);
 
+  // Sincronizar quando houver mudanças no localStorage por outras abas/componentes
+  useEffect(() => {
+    const handleStorageChange = () => {
+      try {
+        const cached = localStorage.getItem("platform_settings");
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          setSettings((prev) => ({ ...prev, ...parsed }));
+        }
+      } catch (e) {
+        console.warn(e);
+      }
+    };
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
+  }, []);
+
+  // Atualizar dinamicamente o título da página caso esteja com o nome padrão
+  useEffect(() => {
+    if (settings?.platform_name && typeof document !== "undefined") {
+      const currentTitle = document.title || "";
+      if (!currentTitle || currentTitle.includes("Preparatório") || currentTitle.includes("prepUni")) {
+        document.title = settings.platform_name;
+      }
+    }
+  }, [settings?.platform_name]);
+
   const updateLocalSettings = useCallback((newSettings) => {
     setSettings((prev) => {
       const updated = { ...prev, ...newSettings };
@@ -115,6 +144,11 @@ export const SettingsProvider = ({ children }) => {
     return settings.whatsapp_display || settings.support_whatsapp || DEFAULT_SETTINGS.whatsapp_display;
   }, [settings]);
 
+  const getLogoUrl = useCallback(() => {
+    const raw = settings?.logo_url || DEFAULT_SETTINGS.logo_url;
+    return getUploadUrl(raw);
+  }, [settings?.logo_url]);
+
   return (
     <SettingsContext.Provider
       value={{
@@ -123,7 +157,8 @@ export const SettingsProvider = ({ children }) => {
         refreshSettings,
         updateLocalSettings,
         getWhatsAppLink,
-        getWhatsAppDisplay
+        getWhatsAppDisplay,
+        getLogoUrl
       }}
     >
       {children}
