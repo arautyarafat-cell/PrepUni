@@ -1,21 +1,41 @@
 import { createClient } from "@supabase/supabase-js";
 
-// Configuração de URL e Anon Key do Supabase (com suporte a variáveis de ambiente frontend e backend)
-const supabaseUrl =
+function sanitizeSupabaseUrl(rawUrl) {
+  if (!rawUrl || typeof rawUrl !== "string") return "";
+  let url = rawUrl.trim().replace(/^["']|["']$/g, "").trim();
+  if (!url) return "";
+
+  if (url.startsWith("postgres://") || url.startsWith("postgresql://")) {
+    console.error("❌ [Frontend Supabase Config]: A variável REACT_APP_SUPABASE_URL foi preenchida com uma URL de banco de dados (postgresql://). Deve ser a URL do projeto (ex: https://xyz.supabase.co).");
+    return "";
+  }
+
+  if (!/^https?:\/\//i.test(url)) {
+    url = `https://${url}`;
+  }
+
+  return url;
+}
+
+const rawSupabaseUrl =
   process.env.REACT_APP_SUPABASE_URL ||
   process.env.SUPABASE_URL ||
   "";
 
-const supabaseAnonKey =
+const supabaseUrl = sanitizeSupabaseUrl(rawSupabaseUrl);
+
+const supabaseAnonKey = (
   process.env.REACT_APP_SUPABASE_ANON_KEY ||
   process.env.SUPABASE_ANON_KEY ||
-  "";
+  ""
+).trim().replace(/^["']|["']$/g, "");
 
 // Nome do bucket destinado ao armazenamento de imagens
-export const SUPABASE_BUCKET_NAME =
+export const SUPABASE_BUCKET_NAME = (
   process.env.REACT_APP_SUPABASE_BUCKET ||
   process.env.SUPABASE_BUCKET ||
-  "images";
+  "images"
+).trim().replace(/^["']|["']$/g, "");
 
 if (!supabaseUrl || !supabaseAnonKey) {
   console.warn(
@@ -24,15 +44,23 @@ if (!supabaseUrl || !supabaseAnonKey) {
   );
 }
 
-// Criação do cliente Supabase
-export const supabase = (supabaseUrl && supabaseAnonKey)
-  ? createClient(supabaseUrl, supabaseAnonKey, {
+// Criação segura do cliente Supabase
+let client = null;
+if (supabaseUrl && supabaseAnonKey) {
+  try {
+    client = createClient(supabaseUrl, supabaseAnonKey, {
       auth: {
         persistSession: true,
         autoRefreshToken: true
       }
-    })
-  : null;
+    });
+  } catch (err) {
+    console.error("❌ [Supabase Storage] Erro ao instanciar SupabaseClient:", err.message);
+    client = null;
+  }
+}
+
+export const supabase = client;
 
 /**
  * Função responsável por fazer o upload de uma imagem diretamente para o Supabase Storage

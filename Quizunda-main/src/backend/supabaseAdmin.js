@@ -2,16 +2,50 @@ const { createClient } = require("@supabase/supabase-js");
 const fs = require("fs");
 const path = require("path");
 
-const supabaseUrl = process.env.SUPABASE_URL || process.env.REACT_APP_SUPABASE_URL || "";
-// No backend, se fornecida a service role key, ela ignora RLS para upload seguro de arquivos
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || process.env.REACT_APP_SUPABASE_ANON_KEY || "";
-const SUPABASE_BUCKET_NAME = process.env.SUPABASE_BUCKET || process.env.REACT_APP_SUPABASE_BUCKET || "images";
+function sanitizeSupabaseUrl(rawUrl) {
+  if (!rawUrl || typeof rawUrl !== "string") return "";
+  let url = rawUrl.trim().replace(/^["']|["']$/g, "").trim();
+  if (!url) return "";
 
-const supabaseAdmin = (supabaseUrl && supabaseKey)
-  ? createClient(supabaseUrl, supabaseKey, {
+  // Se foi colada uma URL de banco de dados (PostgreSQL) por engano
+  if (url.startsWith("postgres://") || url.startsWith("postgresql://")) {
+    console.error("❌ [Backend Supabase Config]: A variável SUPABASE_URL foi preenchida com uma URL de banco de dados (postgresql://). Ela deve ser a URL do projeto (ex: https://xyz.supabase.co). O Supabase Storage foi desativado temporariamente para não derrubar o servidor.");
+    return "";
+  }
+
+  // Se o usuário esqueceu o https://
+  if (!/^https?:\/\//i.test(url)) {
+    url = `https://${url}`;
+  }
+
+  return url;
+}
+
+const rawSupabaseUrl = process.env.SUPABASE_URL || process.env.REACT_APP_SUPABASE_URL || "";
+const supabaseUrl = sanitizeSupabaseUrl(rawSupabaseUrl);
+// No backend, se fornecida a service role key, ela ignora RLS para upload seguro de arquivos
+const supabaseKey = (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || process.env.REACT_APP_SUPABASE_ANON_KEY || "").trim().replace(/^["']|["']$/g, "");
+const SUPABASE_BUCKET_NAME = (process.env.SUPABASE_BUCKET || process.env.REACT_APP_SUPABASE_BUCKET || "images").trim().replace(/^["']|["']$/g, "");
+
+let supabaseAdmin = null;
+
+if (supabaseUrl && supabaseKey) {
+  try {
+    supabaseAdmin = createClient(supabaseUrl, supabaseKey, {
       auth: { persistSession: false }
-    })
-  : null;
+    });
+    console.log(`🔗 [Backend Supabase] Cliente de Storage inicializado com sucesso para: ${supabaseUrl}`);
+  } catch (initErr) {
+    console.error("❌ [Backend Supabase]: Falha ao inicializar SupabaseClient:", initErr.message);
+    supabaseAdmin = null;
+  }
+} else {
+  if (rawSupabaseUrl && !supabaseUrl) {
+    console.warn("⚠️ [Backend Supabase]: SUPABASE_URL ignorada por formato inválido.");
+  } else if (!rawSupabaseUrl && supabaseKey) {
+    console.warn("⚠️ [Backend Supabase]: Chave do Supabase fornecida, mas SUPABASE_URL está ausente.");
+  }
+}
 
 /**
  * Garante que o bucket do Supabase existe e é público
