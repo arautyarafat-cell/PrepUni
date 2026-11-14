@@ -14,6 +14,37 @@ const supabaseAdmin = (supabaseUrl && supabaseKey)
   : null;
 
 /**
+ * Garante que o bucket do Supabase existe e é público
+ */
+async function ensureBucket() {
+  if (!supabaseAdmin) return;
+  try {
+    const { data: buckets, error } = await supabaseAdmin.storage.listBuckets();
+    if (!error && buckets) {
+      const found = buckets.find((b) => b.name === SUPABASE_BUCKET_NAME);
+      if (!found) {
+        console.log(`📦 Bucket '${SUPABASE_BUCKET_NAME}' não encontrado. Criando automaticamente como público...`);
+        const { error: createErr } = await supabaseAdmin.storage.createBucket(SUPABASE_BUCKET_NAME, {
+          public: true,
+          fileSizeLimit: 10485760 // 10MB
+        });
+        if (createErr) {
+          console.warn(`⚠️ Não foi possível criar bucket automaticamente:`, createErr.message);
+        } else {
+          console.log(`✅ Bucket '${SUPABASE_BUCKET_NAME}' criado com sucesso no Supabase!`);
+        }
+      }
+    }
+  } catch (e) {
+    console.warn("Aviso ao checar bucket Supabase:", e.message);
+  }
+}
+
+if (supabaseAdmin) {
+  ensureBucket();
+}
+
+/**
  * Faz upload de um arquivo recebido pelo Multer no backend diretamente para o bucket do Supabase Storage
  * @param {Object} file - Objeto req.file do Multer
  * @param {string} folder - Subpasta no bucket
@@ -42,18 +73,31 @@ async function uploadBackendFileToSupabase(file, folder = "uploads") {
 
     console.log(`🚀 [Backend Supabase Storage] Enviando arquivo para o bucket '${SUPABASE_BUCKET_NAME}': ${filePath}`);
 
-    const { data, error } = await supabaseAdmin.storage
+    let uploadRes = await supabaseAdmin.storage
       .from(SUPABASE_BUCKET_NAME)
       .upload(filePath, fileBuffer, {
         contentType: file.mimetype || "image/jpeg",
         upsert: true
       });
 
-    if (error) {
-      console.error("❌ [Backend Supabase Storage Error]:", error);
+    if (uploadRes.error && uploadRes.error.message && uploadRes.error.message.includes("Bucket not found")) {
+      console.log(`Bucket '${SUPABASE_BUCKET_NAME}' não existia. Tentando criar e reenviar...`);
+      await ensureBucket();
+      uploadRes = await supabaseAdmin.storage
+        .from(SUPABASE_BUCKET_NAME)
+        .upload(filePath, fileBuffer, {
+          contentType: file.mimetype || "image/jpeg",
+          upsert: true
+        });
+    }
+
+    if (uploadRes.error) {
+      console.error("❌ [Backend Supabase Storage Error]:", uploadRes.error);
       // Se falhar o upload no Supabase, loga o erro e usa o arquivo local como fallback
       return `/uploads/${file.filename}`;
     }
+
+    const data = uploadRes.data;
 
     const { data: publicData } = supabaseAdmin.storage
       .from(SUPABASE_BUCKET_NAME)
