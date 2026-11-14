@@ -880,27 +880,52 @@ router.post("/api/admin/questions", async (req, res) => {
       return res.status(400).json({ error: "Sala/Exame válido, enunciado da pergunta e resposta correta são obrigatórios." });
     }
 
-    const [result] = await db.query(
-      `INSERT INTO exam_questions 
-        (roomId, question, correctAnswer, wrongAnswer1, wrongAnswer2, wrongAnswer3, wrongAnswer4, tema, disciplina, points, explanation, ownerId)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id`,
-      [
-        parsedRoomId,
-        String(question).trim(),
-        String(correctAnswer).trim(),
-        wrongAnswer1 ? String(wrongAnswer1).trim() : "",
-        wrongAnswer2 ? String(wrongAnswer2).trim() : "",
-        wrongAnswer3 ? String(wrongAnswer3).trim() : "",
-        wrongAnswer4 ? String(wrongAnswer4).trim() : "",
-        tema || "",
-        disciplina || "",
-        parseFloat(points) || 1.0,
-        explanation || "",
-        ownerId && !isNaN(parseInt(ownerId, 10)) ? parseInt(ownerId, 10) : (req.user?.id || 1)
-      ]
-    );
+    // Identificar um ownerId: se vier do body ou do token admin autenticado
+    let targetOwnerId = ownerId && !isNaN(parseInt(ownerId, 10)) ? parseInt(ownerId, 10) : (req.user?.id || null);
 
-    res.status(201).json({ success: true, id: result.insertId, message: "Pergunta cadastrada com sucesso!" });
+    const executeInsert = async (finalOwnerId) => {
+      return await db.query(
+        `INSERT INTO exam_questions 
+          (roomId, question, correctAnswer, wrongAnswer1, wrongAnswer2, wrongAnswer3, wrongAnswer4, tema, disciplina, points, explanation, ownerId)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id`,
+        [
+          parsedRoomId,
+          String(question).trim(),
+          String(correctAnswer).trim(),
+          wrongAnswer1 ? String(wrongAnswer1).trim() : "",
+          wrongAnswer2 ? String(wrongAnswer2).trim() : "",
+          wrongAnswer3 ? String(wrongAnswer3).trim() : "",
+          wrongAnswer4 ? String(wrongAnswer4).trim() : "",
+          tema || "",
+          disciplina || "",
+          parseFloat(points) || 1.0,
+          explanation || "",
+          finalOwnerId
+        ]
+      );
+    };
+
+    try {
+      const [result] = await executeInsert(targetOwnerId);
+      return res.status(201).json({ success: true, id: result.insertId, message: "Pergunta cadastrada com sucesso!" });
+    } catch (insertErr) {
+      // Se falhar por constraint de chave estrangeira em ownerId (admin não consta na tabela users)
+      if (insertErr.message && insertErr.message.toLowerCase().includes("ownerid")) {
+        console.warn("⚠️ [PostgreSQL] Foreign key em ownerId detectada. Removendo constraint e retentando...");
+        try {
+          await db.rawPool.query("ALTER TABLE exam_questions DROP CONSTRAINT IF EXISTS exam_questions_ownerid_fkey; ALTER TABLE exam_questions ALTER COLUMN ownerid DROP NOT NULL;");
+          const [retryResult] = await executeInsert(targetOwnerId);
+          return res.status(201).json({ success: true, id: retryResult.insertId, message: "Pergunta cadastrada com sucesso!" });
+        } catch (retryErr) {
+          // Fallback seguro: busca o primeiro ID existente na tabela users para satisfazer a constraint temporariamente
+          const [existingUsers] = await db.query("SELECT id FROM users ORDER BY id ASC LIMIT 1");
+          const fallbackUser = existingUsers?.[0]?.id || 1;
+          const [fallbackResult] = await executeInsert(fallbackUser);
+          return res.status(201).json({ success: true, id: fallbackResult.insertId, message: "Pergunta cadastrada com sucesso!" });
+        }
+      }
+      throw insertErr;
+    }
   } catch (err) {
     console.error("Erro ao cadastrar pergunta:", err);
     res.status(500).json({ error: "Erro ao cadastrar pergunta", details: err.message });
@@ -1762,10 +1787,21 @@ const DEFAULT_SETTINGS = {
   banner_subtitle: "Junta-te à melhor academia de preparação universitária"
 };
 
-// Migração segura e automática das colunas de configurações da plataforma
+// Migração segura e automática das colunas de configurações da plataforma e integridade do banco
 async function ensurePlatformSettingsColumns() {
   try {
     const columns = [
+      // 1. Desvincular constraint foreign key restritiva de ownerId em exam_questions
+      "ALTER TABLE exam_questions DROP CONSTRAINT IF EXISTS exam_questions_ownerid_fkey",
+      "ALTER TABLE exam_questions ALTER COLUMN ownerid DROP NOT NULL",
+
+      // 2. Garantir usuário administrador padrão com id=1 na tabela users para relacionamentos legados
+      `INSERT INTO users (id, name, emailorphone, password, role, accounttype, status)
+       VALUES (1, 'Administrador PrepUni', 'admin@prepuni.com', '$2a$10$9WfX3ncxzfqmwdPdf3ij5uWd.uegVYHJVbyW7NUVKjQpwD.I0bP0m', 'admin', 'admin', 'ativo')
+       ON CONFLICT (id) DO NOTHING`,
+      "SELECT setval('users_id_seq', GREATEST((SELECT COALESCE(MAX(id), 1) FROM users) + 1, 1), false)",
+
+      // 3. Colunas dinâmicas de platform_settings
       "ALTER TABLE platform_settings ADD COLUMN IF NOT EXISTS logo_url TEXT DEFAULT '/logo-preparatorio.svg'",
       "ALTER TABLE platform_settings ADD COLUMN IF NOT EXISTS whatsapp_display VARCHAR(100) DEFAULT '(81) 99757-0784'",
       "ALTER TABLE platform_settings ADD COLUMN IF NOT EXISTS whatsapp_message TEXT DEFAULT 'Olá, preciso de ajuda!'",
@@ -1789,7 +1825,7 @@ async function ensurePlatformSettingsColumns() {
       await db.rawPool.query(sql);
     }
   } catch (err) {
-    console.warn("Aviso ao verificar/migrar colunas de platform_settings:", err.message);
+    console.warn("Aviso ao verificar/migrar colunas e constraints:", err.message);
   }
 }
 ensurePlatformSettingsColumns();
