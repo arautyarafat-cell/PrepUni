@@ -2478,9 +2478,14 @@ app.use((req, res) => {
 });
 
 // 🔹 Rodar servidor dinamicamente com suporte a PORT de produção (Render / Railway / VPS)
-const PORT = parseInt(process.env.PORT, 10) || 5000;
-const HOST = process.env.HOST || "0.0.0.0";
+const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 10000;
+const HOST = "0.0.0.0";
 
-app.listen(PORT, HOST, () => {
-  console.log(`Servidor rodando em http://${HOST}:${PORT} 🚀`);
+const server = app.listen(PORT, HOST, () => {
+  console.log(`🚀 [PrepUni API] Servidor ouvindo em http://${HOST}:${PORT}`);
+  console.log(`🩺 [PrepUni API] Health check disponível em http://${HOST}:${PORT}/health`);
+});
+
+server.on("error", (err) => {
+  console.error("❌ [PrepUni API] Erro fatal no servidor HTTP:", err);
 });
