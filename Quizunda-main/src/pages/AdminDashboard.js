@@ -359,23 +359,34 @@ export default function AdminDashboard() {
     e.preventDefault();
     try {
       let finalThumbnail = courseForm.thumbnail;
+      let fileToUploadDirectly = null;
 
-      // Se o usuário selecionou um arquivo File, faz o upload direto para o bucket do Supabase Storage
+      // Se o usuário selecionou um arquivo File, tenta o Supabase Storage ou faz o upload tradicional
       if (courseForm.thumbnail instanceof File) {
-        showFeedback("info", "Enviando imagem de capa para o Supabase Storage...");
-        finalThumbnail = await uploadImageToSupabase(courseForm.thumbnail, "courses");
+        try {
+          finalThumbnail = await uploadImageToSupabase(courseForm.thumbnail, "courses");
+          if (!finalThumbnail) {
+            fileToUploadDirectly = courseForm.thumbnail;
+          }
+        } catch (supabaseErr) {
+          console.warn("⚠️ Upload no Supabase indisponível, usando upload direto:", supabaseErr.message);
+          fileToUploadDirectly = courseForm.thumbnail;
+          finalThumbnail = null;
+        }
       }
 
       const formData = new FormData();
       Object.keys(courseForm).forEach((key) => {
         if (key === "thumbnail" || key === "thumbnailPreview") {
-          // Trata o thumbnail abaixo com a URL definitiva
+          // Trata o thumbnail abaixo
         } else if (courseForm[key] !== null && courseForm[key] !== undefined) {
           formData.append(key, courseForm[key]);
         }
       });
 
-      if (finalThumbnail !== null && finalThumbnail !== undefined) {
+      if (fileToUploadDirectly) {
+        formData.append("thumbnail", fileToUploadDirectly);
+      } else if (finalThumbnail !== null && finalThumbnail !== undefined) {
         formData.append("thumbnail", finalThumbnail);
         formData.append("thumbnail_url", finalThumbnail);
       }
@@ -687,14 +698,23 @@ export default function AdminDashboard() {
       formData.append("accountType", studentForm.accountType || "estudante");
 
       let studentAvatarUrl = studentForm.avatar || "";
+      let studentAvatarFile = null;
       if (studentForm.avatarFile) {
-        showFeedback("info", "Enviando foto do aluno para o Supabase Storage...");
-        studentAvatarUrl = await uploadImageToSupabase(studentForm.avatarFile, "avatars");
+        try {
+          studentAvatarUrl = await uploadImageToSupabase(studentForm.avatarFile, "avatars");
+          if (!studentAvatarUrl) {
+            studentAvatarFile = studentForm.avatarFile;
+          }
+        } catch {
+          studentAvatarFile = studentForm.avatarFile;
+        }
       } else if (studentForm.removeAvatar) {
         studentAvatarUrl = "";
       }
 
-      if (studentAvatarUrl !== undefined) {
+      if (studentAvatarFile) {
+        formData.append("avatar", studentAvatarFile);
+      } else if (studentAvatarUrl !== undefined) {
         formData.append("avatar", studentAvatarUrl);
       }
 
@@ -969,14 +989,23 @@ export default function AdminDashboard() {
       formData.append("bio", (instructorForm.bio || "").trim());
 
       let instructorAvatarUrl = instructorForm.avatar || "";
+      let instructorAvatarFile = null;
       if (instructorForm.avatarFile) {
-        showFeedback("info", "Enviando foto do instrutor para o Supabase Storage...");
-        instructorAvatarUrl = await uploadImageToSupabase(instructorForm.avatarFile, "avatars");
+        try {
+          instructorAvatarUrl = await uploadImageToSupabase(instructorForm.avatarFile, "avatars");
+          if (!instructorAvatarUrl) {
+            instructorAvatarFile = instructorForm.avatarFile;
+          }
+        } catch {
+          instructorAvatarFile = instructorForm.avatarFile;
+        }
       } else if (instructorForm.removeAvatar) {
         instructorAvatarUrl = "";
       }
 
-      if (instructorAvatarUrl !== undefined) {
+      if (instructorAvatarFile) {
+        formData.append("avatar", instructorAvatarFile);
+      } else if (instructorAvatarUrl !== undefined) {
         formData.append("avatar", instructorAvatarUrl);
       }
 
@@ -1045,18 +1074,24 @@ export default function AdminDashboard() {
           finalLogoUrl = await uploadImageToSupabase(logoFile, "settings");
         } catch (supabaseErr) {
           console.warn("Upload no Supabase falhou, tentando rota central de upload:", supabaseErr);
-          const formData = new FormData();
-          formData.append("file", logoFile);
-          const uploadRes = await authFetch(`${API_BASE}/admin/upload`, {
-            method: "POST",
-            body: formData
-          });
-          if (!uploadRes.ok) throw new Error("Não foi possível enviar o arquivo de logotipo.");
-          const uploadData = await uploadRes.json();
-          if (uploadData && uploadData.url) {
-            finalLogoUrl = uploadData.url;
-          } else {
-            throw supabaseErr;
+        }
+
+        if (!finalLogoUrl) {
+          try {
+            const formData = new FormData();
+            formData.append("file", logoFile);
+            const uploadRes = await authFetch(`${API_BASE}/admin/upload`, {
+              method: "POST",
+              body: formData
+            });
+            if (uploadRes.ok) {
+              const uploadData = await uploadRes.json();
+              if (uploadData && uploadData.url) {
+                finalLogoUrl = uploadData.url;
+              }
+            }
+          } catch (uploadErr) {
+            console.warn("Upload direto no servidor falhou:", uploadErr);
           }
         }
       }

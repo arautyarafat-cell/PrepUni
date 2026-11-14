@@ -88,13 +88,23 @@ export default function UserProfileModal({ show, onHide, user, onProfileUpdated 
       }
 
       let userAvatarUrl = user?.avatar || "";
+      let directAvatarFile = null;
       if (avatarFile) {
-        userAvatarUrl = await uploadImageToSupabase(avatarFile, "avatars");
+        try {
+          userAvatarUrl = await uploadImageToSupabase(avatarFile, "avatars");
+          if (!userAvatarUrl) {
+            directAvatarFile = avatarFile;
+          }
+        } catch {
+          directAvatarFile = avatarFile;
+        }
       } else if (removeAvatar) {
         userAvatarUrl = "";
       }
 
-      if (userAvatarUrl !== undefined) {
+      if (directAvatarFile) {
+        formData.append("avatar", directAvatarFile);
+      } else if (userAvatarUrl !== undefined) {
         formData.append("avatar", userAvatarUrl);
       }
 

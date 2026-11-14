@@ -356,10 +356,20 @@ export default function MeusCursos() {
 
 
       let courseThumbnail = form.thumbnail;
+      let directThumbnailFile = null;
       if (form.thumbnail instanceof File) {
-        courseThumbnail = await uploadImageToSupabase(form.thumbnail, "courses");
+        try {
+          courseThumbnail = await uploadImageToSupabase(form.thumbnail, "courses");
+          if (!courseThumbnail) {
+            directThumbnailFile = form.thumbnail;
+          }
+        } catch {
+          directThumbnailFile = form.thumbnail;
+        }
       }
-      if (courseThumbnail) {
+      if (directThumbnailFile) {
+        formData.append("thumbnail", directThumbnailFile);
+      } else if (courseThumbnail) {
         formData.append("thumbnail", courseThumbnail);
         formData.append("thumbnail_url", courseThumbnail);
       }

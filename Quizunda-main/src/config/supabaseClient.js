@@ -46,10 +46,8 @@ export async function uploadImageToSupabase(file, folder = "uploads") {
   }
 
   if (!supabase) {
-    const errorMsg =
-      "Cliente Supabase não configurado. Verifique se REACT_APP_SUPABASE_URL e REACT_APP_SUPABASE_ANON_KEY estão definidos no arquivo .env.";
-    console.error("❌ [Supabase Storage Error]:", errorMsg);
-    throw new Error(errorMsg);
+    console.warn("⚠️ [Supabase Storage] Supabase não configurado. Usando upload direto para o servidor.");
+    return null;
   }
 
   // Sanitizar o nome do arquivo para evitar conflitos de nomes e caracteres especiais
