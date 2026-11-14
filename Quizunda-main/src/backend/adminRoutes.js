@@ -821,23 +821,37 @@ router.get("/api/admin/questions", async (req, res) => {
     `;
     const params = [];
 
-    if (roomId) {
-      params.push(parseInt(roomId, 10));
+    const parsedRoomId = parseInt(roomId, 10);
+    if (roomId && !isNaN(parsedRoomId) && parsedRoomId > 0) {
+      params.push(parsedRoomId);
       query += ` AND q.roomid = $${params.length}`;
     }
-    if (disciplina) {
-      params.push(disciplina);
+    if (disciplina && typeof disciplina === "string" && disciplina.trim() && disciplina.toLowerCase() !== "todas" && disciplina !== "undefined" && disciplina !== "null") {
+      params.push(disciplina.trim());
       query += ` AND q.disciplina = $${params.length}`;
     }
-    if (q) {
-      params.push(`%${q}%`);
+    if (q && typeof q === "string" && q.trim() && q !== "undefined" && q !== "null") {
+      params.push(`%${q.trim()}%`);
       query += ` AND (q.question ILIKE $${params.length} OR q.tema ILIKE $${params.length} OR q.disciplina ILIKE $${params.length})`;
     }
 
     query += ` ORDER BY q.id DESC`;
 
     const result = await db.rawPool.query(query, params);
-    res.json(result.rows);
+    const normalizedRows = (result.rows || []).map(row => ({
+      ...row,
+      roomId: row.roomid,
+      roomName: row.roomname,
+      courseTitle: row.course_title,
+      correctAnswer: row.correctanswer,
+      wrongAnswer1: row.wronganswer1,
+      wrongAnswer2: row.wronganswer2,
+      wrongAnswer3: row.wronganswer3,
+      wrongAnswer4: row.wronganswer4,
+      createdAt: row.createdat,
+      ownerId: row.ownerid
+    }));
+    res.json(normalizedRows);
   } catch (err) {
     console.error("Erro ao listar questões:", err);
     res.status(500).json({ error: "Erro ao listar questões", details: err.message });
@@ -861,8 +875,9 @@ router.post("/api/admin/questions", async (req, res) => {
       ownerId
     } = req.body;
 
-    if (!roomId || !question || !correctAnswer) {
-      return res.status(400).json({ error: "Sala/Exame, enunciado da pergunta e resposta correta são obrigatórios." });
+    const parsedRoomId = parseInt(roomId, 10);
+    if (!roomId || isNaN(parsedRoomId) || !question || !correctAnswer) {
+      return res.status(400).json({ error: "Sala/Exame válido, enunciado da pergunta e resposta correta são obrigatórios." });
     }
 
     const [result] = await db.query(
@@ -870,18 +885,18 @@ router.post("/api/admin/questions", async (req, res) => {
         (roomId, question, correctAnswer, wrongAnswer1, wrongAnswer2, wrongAnswer3, wrongAnswer4, tema, disciplina, points, explanation, ownerId)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id`,
       [
-        parseInt(roomId, 10),
-        question.trim(),
-        correctAnswer.trim(),
-        wrongAnswer1 ? wrongAnswer1.trim() : "",
-        wrongAnswer2 ? wrongAnswer2.trim() : "",
-        wrongAnswer3 ? wrongAnswer3.trim() : "",
-        wrongAnswer4 ? wrongAnswer4.trim() : "",
+        parsedRoomId,
+        String(question).trim(),
+        String(correctAnswer).trim(),
+        wrongAnswer1 ? String(wrongAnswer1).trim() : "",
+        wrongAnswer2 ? String(wrongAnswer2).trim() : "",
+        wrongAnswer3 ? String(wrongAnswer3).trim() : "",
+        wrongAnswer4 ? String(wrongAnswer4).trim() : "",
         tema || "",
         disciplina || "",
         parseFloat(points) || 1.0,
         explanation || "",
-        ownerId ? parseInt(ownerId, 10) : null
+        ownerId && !isNaN(parseInt(ownerId, 10)) ? parseInt(ownerId, 10) : (req.user?.id || 1)
       ]
     );
 
@@ -909,6 +924,11 @@ router.put("/api/admin/questions/:id", async (req, res) => {
       explanation
     } = req.body;
 
+    const parsedRoomId = parseInt(roomId, 10);
+    if (!parsedRoomId || isNaN(parsedRoomId)) {
+      return res.status(400).json({ error: "ID da Sala/Exame inválido." });
+    }
+
     await db.query(
       `UPDATE exam_questions SET
         roomId = ?,
@@ -924,7 +944,7 @@ router.put("/api/admin/questions/:id", async (req, res) => {
         explanation = ?
        WHERE id = ?`,
       [
-        parseInt(roomId, 10),
+        parsedRoomId,
         question,
         correctAnswer,
         wrongAnswer1 || "",
@@ -1327,8 +1347,9 @@ router.get("/api/admin/progress", async (req, res) => {
     `;
     const params = [];
 
-    if (courseId) {
-      params.push(parseInt(courseId, 10));
+    const parsedCourseId = parseInt(courseId, 10);
+    if (courseId && !isNaN(parsedCourseId) && parsedCourseId > 0) {
+      params.push(parsedCourseId);
       query += ` AND m.curso_id = $${params.length}`;
     }
 
@@ -1370,12 +1391,14 @@ router.get("/api/admin/exam-results", async (req, res) => {
     `;
     const params = [];
 
-    if (examId) {
-      params.push(parseInt(examId, 10));
+    const parsedExamId = parseInt(examId, 10);
+    if (examId && !isNaN(parsedExamId) && parsedExamId > 0) {
+      params.push(parsedExamId);
       query += ` AND a.exam_id = $${params.length}`;
     }
-    if (userId) {
-      params.push(parseInt(userId, 10));
+    const parsedUserId = parseInt(userId, 10);
+    if (userId && !isNaN(parsedUserId) && parsedUserId > 0) {
+      params.push(parsedUserId);
       query += ` AND a.user_id = $${params.length}`;
     }
 

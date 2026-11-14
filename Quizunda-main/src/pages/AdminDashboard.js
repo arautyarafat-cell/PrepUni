@@ -589,15 +589,27 @@ export default function AdminDashboard() {
     }
   };
 
-  const loadQuestions = async () => {
+  const loadQuestions = async (filterRoomId = questionExamFilter, search = questionSearch) => {
     setLoadingQuestions(true);
     try {
-      const url = `${API_BASE}/admin/questions?roomId=${questionExamFilter}&q=${encodeURIComponent(questionSearch)}`;
+      const validRoom =
+        filterRoomId &&
+        filterRoomId !== "all" &&
+        filterRoomId !== "undefined" &&
+        filterRoomId !== "null"
+          ? String(filterRoomId).trim()
+          : "";
+      const validSearch =
+        search && search !== "undefined" && search !== "null"
+          ? String(search).trim()
+          : "";
+      const url = `${API_BASE}/admin/questions?roomId=${encodeURIComponent(validRoom)}&q=${encodeURIComponent(validSearch)}`;
       const res = await authFetch(url);
       const data = await res.json();
       setQuestions(Array.isArray(data) ? data : []);
     } catch (err) {
-      console.error(err);
+      console.error("Erro ao carregar questões:", err);
+      setQuestions([]);
     } finally {
       setLoadingQuestions(false);
     }
@@ -2037,8 +2049,9 @@ export default function AdminDashboard() {
                                 className={questionExamFilter === String(e.id) ? "table-primary" : ""}
                                 style={{ cursor: "pointer" }}
                                 onClick={() => {
-                                  setQuestionExamFilter(String(e.id));
-                                  setTimeout(loadQuestions, 50);
+                                  const targetId = String(e.id);
+                                  setQuestionExamFilter(targetId);
+                                  loadQuestions(targetId, questionSearch);
                                 }}
                               >
                                 <td>
@@ -2130,7 +2143,7 @@ export default function AdminDashboard() {
                             placeholder="Pesquisar questão, tema ou disciplina..."
                             value={questionSearch}
                             onChange={(e) => setQuestionSearch(e.target.value)}
-                            onKeyDown={(e) => e.key === "Enter" && loadQuestions()}
+                            onKeyDown={(e) => e.key === "Enter" && loadQuestions(questionExamFilter, questionSearch)}
                           />
                         </Col>
                         <Col md={5}>
@@ -2138,8 +2151,9 @@ export default function AdminDashboard() {
                             size="sm"
                             value={questionExamFilter}
                             onChange={(e) => {
-                              setQuestionExamFilter(e.target.value);
-                              setTimeout(loadQuestions, 50);
+                              const val = e.target.value;
+                              setQuestionExamFilter(val);
+                              loadQuestions(val, questionSearch);
                             }}
                           >
                             <option value="">Todas as Salas de Exame</option>
@@ -2158,7 +2172,7 @@ export default function AdminDashboard() {
                         <div className="text-center py-5"><Spinner animation="border" variant="success" /></div>
                       ) : questions.length === 0 ? (
                         <div className="text-center py-5 text-muted">
-                          <p>Nenhuma pergunta cadastrada para esta sala.</p>
+                          <p className="mb-0"><span>Nenhuma pergunta cadastrada para esta sala.</span></p>
                         </div>
                       ) : (
                         <Table responsive hover className="mb-0 align-middle">
@@ -2175,20 +2189,20 @@ export default function AdminDashboard() {
                               <tr key={q.id}>
                                 <td>
                                   <div className="fw-semibold text-truncate" style={{ maxWidth: "340px" }} title={q.question}>
-                                    {q.question}
+                                    <span>{q.question}</span>
                                   </div>
                                   <small className="text-success fw-bold">
-                                    ✓ {q.correctAnswer || q.correctanswer}
+                                    <span>✓ {q.correctAnswer || q.correctanswer}</span>
                                   </small>
                                 </td>
                                 <td>
                                   <Badge bg="light" className="text-dark border me-1">
-                                    {q.disciplina || "Geral"}
+                                    <span>{q.disciplina || "Geral"}</span>
                                   </Badge>
-                                  <div className="small text-muted">{q.roomname}</div>
+                                  <div className="small text-muted"><span>{q.roomName || q.roomname}</span></div>
                                 </td>
                                 <td>
-                                  <Badge bg="primary">{q.points || 1} pts</Badge>
+                                  <Badge bg="primary"><span>{q.points || 1} pts</span></Badge>
                                 </td>
                                 <td className="text-end">
                                   <div className="btn-group btn-group-sm">
